@@ -182,6 +182,24 @@ db.exec(`
   );
 `);
 
+// 数据库迁移：添加新字段（如果不存在）
+function migrateSchema() {
+  // 检查 plans 表是否有新字段
+  const cols = db.prepare("PRAGMA table_info(plans)").all().map(c => c.name);
+  if (!cols.includes('courseId')) {
+    db.exec("ALTER TABLE plans ADD COLUMN courseId TEXT DEFAULT ''");
+    console.log('[迁移] plans 表增加 courseId 字段');
+  }
+  if (!cols.includes('sessionName')) {
+    db.exec("ALTER TABLE plans ADD COLUMN sessionName TEXT DEFAULT ''");
+    console.log('[迁移] plans 表增加 sessionName 字段');
+  }
+  if (!cols.includes('coverUrl')) {
+    db.exec("ALTER TABLE plans ADD COLUMN coverUrl TEXT DEFAULT ''");
+    console.log('[迁移] plans 表增加 coverUrl 字段');
+  }
+}
+
 // 从 JSON 迁移数据（如果 JSON 文件存在且数据库为空）
 function migrateFromJson() {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
@@ -231,6 +249,7 @@ function migrateFromJson() {
 }
 
 migrateFromJson();
+migrateSchema();
 
 // ==================== 查询辅助函数 ====================
 function getAllUsers() {
