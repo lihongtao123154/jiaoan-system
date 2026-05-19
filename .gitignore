@@ -1,0 +1,6 @@
+node_modules/
+uploads/
+data/database.sqlite
+data/database.sqlite-wal
+data/database.sqlite-shm
+*.log

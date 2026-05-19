@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= plan ? '编辑' : '新建' %>教案 - 教案管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-brand-logo"></span>
+        <span class="nav-title">教案管理系统</span>
+      </div>
+      <div class="nav-menu">
+        <span class="nav-user">
+          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
+          <span><%= user.displayName %></span>
+        </span>
+        <a href="/dashboard" class="nav-link">返回首页</a>
+        <a href="/logout" class="nav-link nav-link-danger">退出</a>
+      </div>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
+        <span class="nav-toggle-bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="form-page">
+      <div class="page-header">
+        <h2><%= plan ? '编辑教案' : '新建教案' %></h2>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="<%= plan ? '/plan/' + plan.id : '/plan' %>" method="POST" class="plan-form" id="planForm">
+        <div class="form-group">
+          <label for="title">教案标题 <span class="required">*</span></label>
+          <input type="text" id="title" name="title" required
+                 value="<%= plan ? plan.title : '' %>"
+                 placeholder="给你的教案起个名字" class="form-input form-input-lg">
+        </div>
+
+        <div class="form-group">
+          <label for="content">教案内容</label>
+          <p class="form-help">支持 HTML 标签，可以用工具栏快速插入排版</p>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="wrapText('strong')" title="加粗"><b>B</b></button>
+            <button type="button" class="editor-btn" onclick="wrapText('em')" title="斜体"><i>I</i></button>
+            <button type="button" class="editor-btn" onclick="wrapText('u')" title="下划线"><u>U</u></button>
+            <span class="editor-sep"></span>
+            <button type="button" class="editor-btn" onclick="insertTag('h3')" title="标题">H3</button>
+            <button type="button" class="editor-btn" onclick="insertTag('h4')" title="小标题">H4</button>
+            <span class="editor-sep"></span>
+            <button type="button" class="editor-btn" onclick="insertTag('ul')" title="无序列表">列表</button>
+            <button type="button" class="editor-btn" onclick="insertTag('ol')" title="有序列表">1.</button>
+            <button type="button" class="editor-btn" onclick="insertTag('li')" title="列表项">-</button>
+            <span class="editor-sep"></span>
+            <button type="button" class="editor-btn" onclick="insertTag('p')" title="段落">P</button>
+            <button type="button" class="editor-btn" onclick="insertTag('br')" title="换行">br</button>
+          </div>
+          <textarea id="content" name="content" class="form-input editor-textarea"
+                    placeholder="写下你的教案内容..." rows="15"><%= plan ? plan.content : '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>附件资源</label>
+          <p class="form-help">支持图片 (jpg/png/gif/webp) 和视频 (mp4/webm/avi/mov)，单文件最大 500MB</p>
+
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-zone-label">把文件拖到这里上传</div>
+            <div class="upload-zone-hint">或点击选择文件</div>
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" hidden>
+            <div class="upload-progress" id="uploadProgress" style="display:none">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-text" id="progressText">上传中...</div>
+            </div>
+          </div>
+
+          <div class="upload-status" id="uploadStatus"></div>
+
+          <div class="file-list" id="fileList">
+            <% if (plan && plan.files) { %>
+              <% plan.files.forEach(function(file) { %>
+                <div class="file-item" data-filename="<%= file.filename %>" data-type="<%= file.type %>">
+                  <span class="file-item-type"><%= file.type === 'image' ? '图片' : '视频' %></span>
+                  <span class="file-item-name"><%= file.originalName %></span>
+                  <span class="file-item-size"><%= formatFileSize(file.size) %></span>
+                  <button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>
+                </div>
+              <% }); %>
+            <% } %>
+          </div>
+
+          <input type="hidden" name="fileList" id="fileListInput"
+                 value='<%= plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
+        </div>
+
+        <div class="form-actions">
+          <a href="/dashboard" class="btn btn-outline btn-lg">取消</a>
+          <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">
+            <%= plan ? '保存修改' : '创建教案' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/main.js"></script>
+  <script>
+    // 编辑器工具栏
+    function getTextarea() { return document.getElementById('content'); }
+
+    function wrapText(tag) {
+      const ta = getTextarea();
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const selected = ta.value.substring(start, end);
+      const before = ta.value.substring(0, start);
+      const after = ta.value.substring(end);
+      const replacement = selected ? '<' + tag + '>' + selected + '</' + tag + '>' : '<' + tag + '></' + tag + '>';
+      ta.value = before + replacement + after;
+      const newPos = start + replacement.length;
+      ta.setSelectionRange(newPos, newPos);
+      ta.focus();
+    }
+
+    function insertTag(tag) {
+      const ta = getTextarea();
+      const start = ta.selectionStart;
+      const before = ta.value.substring(0, start);
+      const after = ta.value.substring(ta.selectionEnd);
+      var insertion;
+      switch (tag) {
+        case 'br': insertion = '<br>\n'; break;
+        case 'li': insertion = '<li></li>\n'; break;
+        case 'h3': insertion = '<h3></h3>\n'; break;
+        case 'h4': insertion = '<h4></h4>\n'; break;
+        case 'p': insertion = '<p></p>\n'; break;
+        case 'ul': insertion = '<ul>\n  <li></li>\n</ul>\n'; break;
+        case 'ol': insertion = '<ol>\n  <li></li>\n</ol>\n'; break;
+        default: insertion = '<' + tag + '></' + tag + '>';
+      }
+      ta.value = before + insertion + after;
+      const newPos = start + insertion.length;
+      ta.setSelectionRange(newPos, newPos);
+      ta.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const ta = getTextarea();
+      if (ta) {
+        ta.addEventListener('keydown', function(e) {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 2;
+          }
+        });
+      }
+
+      // 保存按钮点击反馈
+      document.getElementById('planForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.textContent = '保存中...';
+      });
+    });
+
+    // 文件上传
+    const uploadedFiles = (function() {
+      try {
+        const input = document.getElementById('fileListInput');
+        return JSON.parse(input.value || '[]');
+      } catch(e) { return []; }
+    })();
+
+    function updateFileListInput() {
+      document.getElementById('fileListInput').value = JSON.stringify(uploadedFiles);
+    }
+
+    function addFileItem(file) {
+      uploadedFiles.push(file);
+      updateFileListInput();
+      const container = document.getElementById('fileList');
+      const div = document.createElement('div');
+      div.className = 'file-item';
+      div.dataset.filename = file.filename;
+      div.dataset.type = file.type;
+      div.innerHTML =
+        '<span class="file-item-type">' + (file.type === 'image' ? '图片' : '视频') + '</span>' +
+        '<span class="file-item-name">' + file.originalName + '</span>' +
+        '<span class="file-item-size">' + formatFileSize(file.size) + '</span>' +
+        '<button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>';
+      container.appendChild(div);
+    }
+
+    function removeFile(btn) {
+      const item = btn.closest('.file-item');
+      const filename = item.dataset.filename;
+      const type = item.dataset.type;
+      const idx = uploadedFiles.findIndex(function(f) { return f.filename === filename; });
+      if (idx !== -1) uploadedFiles.splice(idx, 1);
+      updateFileListInput();
+      item.remove();
+      fetch('/upload/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename, type: type })
+      }).catch(function() {});
+    }
+
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadZone.addEventListener('click', function() { fileInput.click(); });
+
+    uploadZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', function() {
+      if (this.files.length > 0) { uploadFiles(this.files); this.value = ''; }
+    });
+
+    function uploadFiles(files) {
+      const status = document.getElementById('uploadStatus');
+      const progress = document.getElementById('uploadProgress');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+
+      Array.from(files).forEach(function(file) {
+        if (file.size > 500 * 1024 * 1024) {
+          showStatus(file.name + ' 超过 500MB 限制', 'error');
+          return;
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', function(e) {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = file.name + ' - ' + pct + '%';
+          }
+        });
+
+        xhr.addEventListener('loadstart', function() {
+          progress.style.display = 'block';
+          uploadZone.classList.add('uploading');
+        });
+
+        xhr.addEventListener('load', function() {
+          if (xhr.status === 200) {
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              if (resp.success) { addFileItem(resp.file); showStatus(file.name + ' 上传成功', 'success'); }
+              else { showStatus(file.name + ': ' + (resp.error || '上传失败'), 'error'); }
+            } catch(e) { showStatus(file.name + ': 响应解析失败', 'error'); }
+          } else {
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              showStatus(file.name + ': ' + (resp.error || '上传失败'), 'error');
+            } catch(e) { showStatus(file.name + ': 服务器错误', 'error'); }
+          }
+        });
+
+        xhr.addEventListener('error', function() { showStatus(file.name + ': 网络错误', 'error'); });
+
+        xhr.addEventListener('loadend', function() {
+          progress.style.display = 'none';
+          uploadZone.classList.remove('uploading');
+        });
+
+        xhr.open('POST', '/upload', true);
+        xhr.send(formData);
+      });
+    }
+
+    function showStatus(msg, type) {
+      const status = document.getElementById('uploadStatus');
+      const div = document.createElement('div');
+      div.className = 'status-msg status-' + (type || 'info');
+      div.textContent = msg;
+      status.appendChild(div);
+      setTimeout(function() {
+        div.style.opacity = '0';
+        setTimeout(function() { div.remove(); }, 500);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

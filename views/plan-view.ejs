@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= plan.title %> - 教案管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-brand-logo"></span>
+        <span class="nav-title">教案管理系统</span>
+      </div>
+      <div class="nav-menu">
+        <span class="nav-user">
+          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
+          <span><%= user.displayName %></span>
+        </span>
+        <a href="/dashboard" class="nav-link">返回首页</a>
+        <a href="/logout" class="nav-link nav-link-danger">退出</a>
+      </div>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
+        <span class="nav-toggle-bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="plan-detail">
+      <div class="detail-actions">
+        <a href="/dashboard" class="btn btn-sm btn-outline">返回首页</a>
+        <div class="detail-actions-right">
+          <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
+          <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
+                onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="detail-header">
+        <h1 class="detail-title"><%= plan.title %></h1>
+        <div class="detail-meta">
+          <span><%= plan.author %></span>
+          <span><%= formatDate(plan.updatedAt) %></span>
+        </div>
+      </div>
+
+      <% if (plan.content) { %>
+        <div class="detail-content">
+          <div class="section-label">教案内容</div>
+          <div class="content-body"><%- plan.content %></div>
+        </div>
+      <% } %>
+
+      <% const images = plan.files.filter(f => f.type === 'image'); %>
+      <% if (images.length > 0) { %>
+        <div class="detail-section">
+          <div class="section-label">图片附件 (<%= images.length %>)</div>
+          <div class="image-gallery">
+            <% images.forEach(function(img) { %>
+              <div class="gallery-item">
+                <a href="/uploads/images/<%= img.filename %>" target="_blank" class="gallery-link">
+                  <img src="/uploads/images/<%= img.filename %>"
+                       alt="<%= img.originalName %>" loading="lazy"
+                       title="<%= img.originalName %> (<%= formatFileSize(img.size) %>)">
+                </a>
+                <div class="gallery-item-name"><%= img.originalName %></div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <% const videos = plan.files.filter(f => f.type === 'video'); %>
+      <% if (videos.length > 0) { %>
+        <div class="detail-section">
+          <div class="section-label">视频附件 (<%= videos.length %>)</div>
+          <div class="video-grid">
+            <% videos.forEach(function(vid) { %>
+              <div class="video-card">
+                <video controls preload="metadata" class="video-player"
+                       onerror="this.parentElement.innerHTML='<div class=\\'video-error\\'>视频加载失败: <%= vid.originalName %></div>'">
+                  <source src="/uploads/videos/<%= vid.filename %>" type="<%= vid.mimeType || 'video/mp4' %>">
+                  您的浏览器不支持视频播放
+                </video>
+                <div class="video-card-info">
+                  <div class="video-card-name"><%= vid.originalName %> (<%= formatFileSize(vid.size) %>)</div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (plan.files.length === 0) { %>
+        <div class="detail-section">
+          <div class="files-empty">此教案暂未添加附件</div>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

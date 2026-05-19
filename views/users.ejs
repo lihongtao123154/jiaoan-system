@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 教案管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-brand-logo"></span>
+        <span class="nav-title">教案管理系统</span>
+      </div>
+      <div class="nav-menu">
+        <span class="nav-user">
+          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
+          <span><%= user.displayName %></span>
+        </span>
+        <a href="/dashboard" class="nav-link">返回首页</a>
+        <a href="/logout" class="nav-link nav-link-danger">退出</a>
+      </div>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
+        <span class="nav-toggle-bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>用户管理</h2>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <div class="card">
+      <div class="card-header"><h3>添加新用户</h3></div>
+      <div class="card-body">
+        <form action="/users/add" method="POST" class="inline-form-row">
+          <div class="form-group">
+            <input type="text" name="username" placeholder="用户名" required class="form-input" style="width:150px">
+          </div>
+          <div class="form-group">
+            <input type="text" name="displayName" placeholder="显示名称" class="form-input" style="width:150px">
+          </div>
+          <div class="form-group">
+            <input type="password" name="password" placeholder="密码" required class="form-input" style="width:150px">
+          </div>
+          <button type="submit" class="btn btn-primary">添加用户</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-header"><h3>用户列表 (<%= users.length %>)</h3></div>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>用户名</th>
+                <th>显示名称</th>
+                <th>角色</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(function(u) { %>
+                <tr>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.displayName || '-' %></td>
+                  <td>
+                    <% if (u.role === 'admin') { %>
+                      <span class="role-badge role-badge-admin">管理员</span>
+                    <% } else { %>
+                      <span class="role-badge role-badge-user">普通用户</span>
+                    <% } %>
+                  </td>
+                  <td><%= formatDate(u.createdAt) %></td>
+                  <td class="action-cell">
+                    <button class="btn btn-sm btn-outline" onclick="showPasswordForm('<%= u.id %>', '<%= u.displayName || u.username %>')">改密码</button>
+                    <% if (u.id !== user.id) { %>
+                      <form action="/users/delete/<%= u.id %>" method="POST" class="inline-form"
+                            onsubmit="return confirm('确定删除用户「<%= u.displayName || u.username %>」吗？')">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                      </form>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="passwordModal" style="display:none" onclick="if(event.target===this)hidePasswordForm()">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-header-title">修改密码</div>
+          <button type="button" class="modal-close" onclick="hidePasswordForm()">&times;</button>
+        </div>
+        <form action="" method="POST" id="passwordForm">
+          <div class="modal-body">
+            <p id="passwordUserLabel">用户：</p>
+            <div class="form-group">
+              <label>新密码</label>
+              <input type="password" name="newPassword" required minlength="4" class="form-input">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="hidePasswordForm()">取消</button>
+            <button type="submit" class="btn btn-primary">确认修改</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/main.js"></script>
+  <script>
+    function showPasswordForm(userId, displayName) {
+      document.getElementById('passwordForm').action = '/users/password/' + userId;
+      document.getElementById('passwordUserLabel').textContent = '用户：' + displayName;
+      document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function hidePasswordForm() {
+      document.getElementById('passwordModal').style.display = 'none';
+      document.getElementById('passwordForm').reset();
+    }
+  </script>
+</body>
+</html>

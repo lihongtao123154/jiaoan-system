@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教案管理系统 - 展示</title>
+<style>
+/* ====== 全部样式直接嵌入 ====== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f5f2;--surface:#fff;--border:#e6e0d8;--border-light:#f0ece6;--text:#2a2724;--text-secondary:#7a736e;--text-muted:#a8a09a;--accent:#4a6cf7;--accent-hover:#3b5de7;--accent-light:#eef1ff;--success:#16a34a;--danger:#e11d48;--radius-sm:6px;--radius:8px;--radius-md:12px;--radius-lg:16px;--shadow:0 2px 8px rgba(42,39,36,0.07);--shadow-md:0 4px 16px rgba(42,39,36,0.08);--font:-apple-system,BlinkMacSystemFont,"SF Pro","PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.7;min-height:100vh;margin:0}
+a{color:var(--accent);text-decoration:none}
+h2{font-size:22px;font-weight:700}
+
+/* 导航 */
+.navbar{background:rgba(255,255,255,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;padding:0 28px;height:60px}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-brand-logo{width:30px;height:30px;background:linear-gradient(135deg,#4a6cf7,#6d8ff7);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(74,108,247,0.25)}
+.nav-brand-logo::after{content:'';width:14px;height:14px;border:2px solid rgba(255,255,255,0.9);border-radius:3px;border-top:none;border-right:none;transform:rotate(-45deg);margin-top:-2px}
+.nav-title{font-size:17px;font-weight:600;background:linear-gradient(135deg,#2a2724,#5a5550);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-menu{display:flex;align-items:center;gap:6px;margin-left:auto}
+.nav-link{font-size:14px;color:var(--text-secondary);padding:6px 12px;border-radius:var(--radius);transition:all 0.2s}
+.nav-link:hover{background:var(--border-light);color:var(--text);cursor:pointer}
+.nav-link-active{background:var(--accent-light);color:var(--accent)}
+.nav-link-active:hover{background:var(--accent-light);color:var(--accent)}
+
+/* 按钮 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 18px;font-size:14px;font-weight:500;font-family:var(--font);border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;transition:all 0.2s;text-decoration:none;box-shadow:0 1px 3px rgba(42,39,36,0.06)}
+.btn:hover{background:#faf8f6;border-color:#d6cfc6;box-shadow:var(--shadow);transform:translateY(-1px)}
+.btn-sm{padding:5px 12px;font-size:13px;border-radius:6px}
+.btn-lg{padding:11px 24px;font-size:15px;border-radius:10px}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(74,108,247,0.25)}
+.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);box-shadow:0 4px 14px rgba(74,108,247,0.3);transform:translateY(-1px)}
+.btn-secondary{background:#f0eeeb;color:var(--text);border-color:#e6e0d8}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 2px 8px rgba(225,29,72,0.2)}
+.btn-outline{background:transparent;color:var(--text-secondary);border-color:var(--border);box-shadow:none}
+
+/* 主内容 */
+.main-content{max-width:1120px;margin:0 auto;padding:32px 28px}
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+
+/* 卡片网格 */
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(42,39,36,0.06)}
+.plan-card:hover{border-color:#d6cfc6;box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.plan-card-thumb{height:150px;overflow:hidden;background:#f0ece6;display:flex;align-items:center;justify-content:center}
+.plan-card-thumb img{width:100%;height:100%;object-fit:cover}
+.plan-card-thumb-empty{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-muted);font-size:13px}
+.thumb-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.plan-card-thumb-empty .thumb-icon::after{content:'';width:18px;height:14px;border:2px solid #d6cfc6;border-radius:2px;border-top:none}
+.plan-card-thumb.video-bg{background:#1c1b1a}
+.plan-card-thumb.video-bg .plan-card-thumb-empty{color:rgba(255,255,255,0.4)}
+.plan-card-thumb.video-bg .thumb-icon::after{width:0;height:0;border:none;border-left:10px solid rgba(255,255,255,0.4);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.plan-card-body{padding:18px 20px}
+.plan-card-title{font-size:16px;font-weight:600;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45}
+.plan-card-meta{font-size:13px;color:var(--text-secondary);margin-bottom:14px}
+.plan-card-meta-item{display:inline-block;margin-right:16px}
+.plan-card-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border-light)}
+
+/* 页面容器 */
+.page-container{display:none}
+.page-container.active{display:block}
+
+/* 表单 */
+.form-group{margin-bottom:22px}
+.form-group label{display:block;font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text)}
+.form-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:var(--font);color:var(--text);background:var(--surface);outline:none;transition:all 0.2s}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(74,108,247,0.12)}
+.form-input-lg{padding:12px 16px;font-size:16px;border-radius:10px}
+textarea.form-input{resize:vertical;line-height:1.8;min-height:200px;font-family:var(--font)}
+
+/* 编辑器 */
+.editor-toolbar{display:flex;align-items:center;gap:2px;flex-wrap:wrap;padding:8px 10px;background:#faf8f6;border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0}
+.editor-btn{padding:5px 9px;border:1px solid transparent;background:transparent;border-radius:5px;cursor:pointer;font-size:13px;color:var(--text-secondary)}
+.editor-btn:hover{background:var(--surface);border-color:var(--border);color:var(--text)}
+.editor-sep{width:1px;height:20px;background:var(--border);margin:0 6px}
+.editor-textarea{border-radius:0 0 8px 8px;font-family:"SF Mono","Fira Code","Consolas",monospace;font-size:14px}
+
+/* 上传区 */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center;transition:all 0.2s;background:#faf8f6;cursor:pointer}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone-label{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.upload-zone-hint{font-size:13px;color:var(--text-muted)}
+.file-list{margin-top:16px}
+.file-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border-light);border-radius:8px;margin-bottom:6px;font-size:14px}
+.file-item-type{font-size:12px;font-weight:500;color:var(--text-secondary);min-width:30px}
+.file-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item-size{font-size:12px;color:var(--text-muted)}
+.file-item-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:0 4px}
+
+/* 表单操作 */
+.form-actions{display:flex;gap:12px;justify-content:flex-end;padding-top:24px;border-top:1px solid var(--border-light);margin-top:28px}
+
+/* 详情页 */
+.plan-detail{max-width:800px;margin:0 auto}
+.detail-title{font-size:28px;font-weight:700;margin-bottom:12px;line-height:1.3;letter-spacing:-0.5px}
+.detail-meta{font-size:14px;color:var(--text-secondary);margin-bottom:28px}
+.detail-content{background:var(--surface);padding:28px 32px;border-radius:var(--radius-md);border:1px solid var(--border);margin-bottom:32px}
+.section-label{font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--accent-light)}
+.content-body{font-size:15px;line-height:1.9}
+.content-body p{margin-bottom:14px}
+
+/* 图片画廊 */
+.image-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:32px}
+.demo-img{width:100%;height:140px;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,#e8e2da,#d6cfc6);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;border:1px solid var(--border)}
+
+/* 视频 */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px}
+.demo-video{width:100%;height:200px;background:#1c1b1a;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:13px}
+
+/* 空状态 */
+.empty-state{text-align:center;padding:64px 24px;background:var(--surface);border-radius:var(--radius-md);border:2px dashed var(--border)}
+.empty-state-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.empty-state-desc{font-size:15px;color:var(--text-secondary);margin-bottom:24px}
+
+/* 表格 */
+.card{background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(42,39,36,0.06)}
+.card-header{padding:18px 24px;border-bottom:1px solid var(--border-light)}
+.card-header h3{font-size:16px;font-weight:600}
+.card-body{padding:24px}
+.user-table{width:100%;border-collapse:collapse;font-size:14px}
+.user-table th,.user-table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border-light)}
+.user-table th{font-weight:500;color:var(--text-secondary);font-size:13px;background:#faf8f6}
+.role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.role-badge-admin{background:var(--accent-light);color:var(--accent)}
+.role-badge-user{background:#f0ece6;color:var(--text-secondary)}
+
+/* 介绍横幅 */
+.hero{text-align:center;padding:80px 28px 60px;background:linear-gradient(135deg,#f7f5f2,#eeebe6)}
+.hero h1{font-size:36px;font-weight:700;margin-bottom:12px;letter-spacing:-0.5px}
+.hero p{font-size:18px;color:var(--text-secondary);max-width:600px;margin:0 auto 32px}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;max-width:1120px;margin:0 auto;padding:48px 28px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:28px;text-align:center;transition:all 0.2s;box-shadow:0 1px 3px rgba(42,39,36,0.06)}
+.feature-card:hover{border-color:#d6cfc6;box-shadow:var(--shadow);transform:translateY(-2px)}
+.feature-card h3{font-size:17px;font-weight:600;margin-bottom:8px}
+.feature-card p{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.feature-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;font-weight:600}
+
+/* 响应式 */
+@media(max-width:768px){
+  .nav-inner{padding:0 16px}
+  .nav-title{font-size:15px}
+  .main-content{padding:24px 16px}
+  .plan-grid{grid-template-columns:1fr}
+  .hero h1{font-size:28px}
+  .hero p{font-size:16px}
+  .hero{padding:48px 20px 40px}
+}
+</style>
+</head>
+<body>
+
+<!-- ====== 顶部导航 ====== -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-brand-logo"></span>
+      <span class="nav-title">教案管理系统</span>
+    </div>
+    <div class="nav-menu">
+      <span style="font-size:14px;color:var(--text-secondary);padding:0 10px;display:flex;align-items:center;gap:8px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-weight:600;font-size:14px">张</span>
+        张老师
+      </span>
+      <a class="nav-link nav-link-active" onclick="showPage('home')">展示首页</a>
+      <a class="nav-link" onclick="showPage('dashboard')">教案列表</a>
+      <a class="nav-link" onclick="showPage('detail')">教案详情</a>
+      <a class="nav-link" onclick="showPage('edit')">新建教案</a>
+      <a class="nav-link" onclick="showPage('users')">用户管理</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ====== 页面1: 展示首页 ====== -->
+<div class="page-container active" id="page-home">
+  <div class="hero">
+    <h1>教案管理系统</h1>
+    <p>一个简单好用的教学工具，帮你管理教案、图片和视频资源</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-lg" onclick="showPage('dashboard')">查看教案列表</button>
+      <button class="btn btn-outline btn-lg" onclick="showPage('edit')">体验新建教案</button>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#eef1ff;color:#4a6cf7">01</div>
+      <h3>多账号登录</h3>
+      <p>支持多名教师使用，管理员可管理账号和密码</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#f0fdf4;color:#16a34a">02</div>
+      <h3>创建教案</h3>
+      <p>支持富文本排版，标题、列表、加粗斜体一应俱全</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fffbeb;color:#d97706">03</div>
+      <h3>图片支持</h3>
+      <p>上传教案相关图片，自动生成画廊预览</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fef2f2;color:#e11d48">04</div>
+      <h3>视频支持</h3>
+      <p>直接上传视频文件，浏览器内播放</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 页面2: 教案列表 ====== -->
+<div class="page-container" id="page-dashboard">
+  <main class="main-content">
+    <div class="page-header">
+      <h2>我的教案</h2>
+      <span style="font-size:14px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 12px">共 3 个</span>
+    </div>
+    <div class="plan-grid">
+      <!-- 卡片1 -->
+      <div class="plan-card">
+        <div class="plan-card-thumb"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='150'%3E%3Crect width='400' height='150' fill='%23e8e2da'/%3E%3Ctext x='200' y='80' text-anchor='middle' fill='%23a8a09a' font-size='14' font-family='sans-serif'%3E示例图片%3C/text%3E%3C/svg%3E" alt="示例图片"></div>
+        <div class="plan-card-body">
+          <div class="plan-card-title">分数的意义和性质</div>
+          <div class="plan-card-meta"><span class="plan-card-meta-item">张老师</span><span class="plan-card-meta-item">2026-05-18</span><span class="plan-card-meta-item">3 个附件</span></div>
+          <div class="plan-card-actions">
+            <button class="btn btn-sm btn-outline" onclick="showPage('detail')">查看</button>
+            <button class="btn btn-sm btn-secondary" onclick="showPage('edit')">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="if(confirm('确定删除吗？')){}">删除</button>
+          </div>
+        </div>
+      </div>
+      <!-- 卡片2 -->
+      <div class="plan-card">
+        <div class="plan-card-thumb video-bg"><div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>2 个视频</span></div></div>
+        <div class="plan-card-body">
+          <div class="plan-card-title">小学科学 - 植物的生长</div>
+          <div class="plan-card-meta"><span class="plan-card-meta-item">李老师</span><span class="plan-card-meta-item">2026-05-15</span><span class="plan-card-meta-item">2 个附件</span></div>
+          <div class="plan-card-actions">
+            <button class="btn btn-sm btn-outline" onclick="showPage('detail')">查看</button>
+            <button class="btn btn-sm btn-secondary" onclick="showPage('edit')">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="if(confirm('确定删除吗？')){}">删除</button>
+          </div>
+        </div>
+      </div>
+      <!-- 卡片3 -->
+      <div class="plan-card">
+        <div class="plan-card-thumb"><div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>暂无附件</span></div></div>
+        <div class="plan-card-body">
+          <div class="plan-card-title">二年级语文 - 春天来了</div>
+          <div class="plan-card-meta"><span class="plan-card-meta-item">张老师</span><span class="plan-card-meta-item">2026-05-10</span><span class="plan-card-meta-item">0 个附件</span></div>
+          <div class="plan-card-actions">
+            <button class="btn btn-sm btn-outline">查看</button>
+            <button class="btn btn-sm btn-secondary">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="if(confirm('确定删除吗？')){}">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ====== 页面3: 教案详情 ====== -->
+<div class="page-container" id="page-detail">
+  <main class="main-content">
+    <div class="plan-detail">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px">
+        <button class="btn btn-sm btn-outline" onclick="showPage('dashboard')">← 返回列表</button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-sm btn-secondary" onclick="showPage('edit')">编辑</button>
+          <button class="btn btn-sm btn-danger" onclick="if(confirm('确定删除吗？')){}">删除</button>
+        </div>
+      </div>
+      <div style="margin-bottom:28px">
+        <h1 class="detail-title">分数的意义和性质</h1>
+        <div class="detail-meta">张老师&nbsp;&nbsp;·&nbsp;&nbsp;2026-05-18 14:30</div>
+      </div>
+      <div class="detail-content">
+        <div class="section-label">教案内容</div>
+        <div class="content-body">
+          <h3>教学目标</h3>
+          <p>1. 理解分数的意义，知道分数各部分的名称。<br>2. 掌握分数的基本性质。<br>3. 能够运用分数解决简单的实际问题。</p>
+          <h3>教学重点</h3>
+          <p>理解分数的意义，掌握分数的基本性质。</p>
+          <h3>教学过程</h3>
+          <p><strong>一、导入新课</strong><br>通过分月饼的情景引入分数的概念。</p>
+          <p><strong>二、新课讲授</strong><br>1. 把一个整体平均分成若干份，表示其中一份或几份的数叫做分数。<br>2. 分数的分子和分母同时乘或除以相同的数（0除外），分数的大小不变。</p>
+          <p><strong>三、巩固练习</strong><br>完成课本第 45 页练习题 1-3 题。</p>
+        </div>
+      </div>
+      <div class="section-label" style="margin-bottom:16px">图片附件 (2)</div>
+      <div class="image-gallery">
+        <div class="demo-img">分数示例图 1</div>
+        <div class="demo-img">分数示例图 2</div>
+      </div>
+      <div class="section-label" style="margin-bottom:16px">视频附件 (1)</div>
+      <div class="video-grid">
+        <div class="demo-video">▶ 分数教学视频</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ====== 页面4: 新建/编辑教案 ====== -->
+<div class="page-container" id="page-edit">
+  <main class="main-content">
+    <div style="max-width:800px;margin:0 auto">
+      <div class="page-header"><h2>新建教案</h2></div>
+      <div style="background:var(--surface);padding:32px;border-radius:var(--radius-md);border:1px solid var(--border)">
+        <div class="form-group">
+          <label>教案标题 <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="form-input form-input-lg" placeholder="给你的教案起个名字" value="分数的意义和性质">
+        </div>
+        <div class="form-group">
+          <label>教案内容</label>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">支持 HTML 标签，可以用工具栏快速插入排版</p>
+          <div class="editor-toolbar">
+            <button class="editor-btn" title="加粗"><b>B</b></button>
+            <button class="editor-btn" title="斜体"><i>I</i></button>
+            <button class="editor-btn" title="下划线"><u>U</u></button>
+            <span class="editor-sep"></span>
+            <button class="editor-btn" title="标题">H3</button>
+            <button class="editor-btn" title="小标题">H4</button>
+            <span class="editor-sep"></span>
+            <button class="editor-btn" title="列表">列表</button>
+            <button class="editor-btn" title="有序列表">1.</button>
+            <span class="editor-sep"></span>
+            <button class="editor-btn" title="段落">P</button>
+            <button class="editor-btn" title="换行">br</button>
+          </div>
+          <textarea class="form-input editor-textarea" rows="12" placeholder="写下你的教案内容...">&lt;h3&gt;教学目标&lt;/h3&gt;&lt;p&gt;1. 理解分数的意义。&lt;br&gt;2. 掌握分数的基本性质。&lt;/p&gt;</textarea>
+        </div>
+        <div class="form-group">
+          <label>附件资源</label>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">支持图片 (jpg/png/gif) 和视频 (mp4/webm/avi)，单文件最大 500MB</p>
+          <div class="upload-zone">
+            <div class="upload-zone-label">把文件拖到这里上传</div>
+            <div class="upload-zone-hint">或点击选择文件</div>
+          </div>
+          <div class="file-list">
+            <div class="file-item">
+              <span class="file-item-type">图片</span>
+              <span class="file-item-name">分数示意图.png</span>
+              <span class="file-item-size">1.2 MB</span>
+              <button class="file-item-remove">&times;</button>
+            </div>
+            <div class="file-item">
+              <span class="file-item-type">视频</span>
+              <span class="file-item-name">分数教学视频.mp4</span>
+              <span class="file-item-size">45.8 MB</span>
+              <button class="file-item-remove">&times;</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline btn-lg" onclick="showPage('dashboard')">取消</button>
+          <button class="btn btn-primary btn-lg" onclick="alert('保存成功！将自动返回首页。')">创建教案</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ====== 页面5: 用户管理 ====== -->
+<div class="page-container" id="page-users">
+  <main class="main-content">
+    <div class="page-header"><h2>用户管理</h2></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>添加新用户</h3></div>
+      <div class="card-body">
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+          <div><input type="text" class="form-input" placeholder="用户名" style="width:150px"></div>
+          <div><input type="text" class="form-input" placeholder="显示名称" style="width:150px"></div>
+          <div><input type="password" class="form-input" placeholder="密码" style="width:150px"></div>
+          <button class="btn btn-primary">添加用户</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>用户列表 (3)</h3></div>
+      <div class="card-body">
+        <table class="user-table">
+          <thead><tr><th>用户名</th><th>显示名称</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><strong>admin</strong></td><td>管理员</td><td><span class="role-badge role-badge-admin">管理员</span></td><td>2026-05-01</td><td style="display:flex;gap:6px"><button class="btn btn-sm btn-outline">改密码</button></td></tr>
+            <tr><td><strong>zhang</strong></td><td>张老师</td><td><span class="role-badge role-badge-user">普通用户</span></td><td>2026-05-10</td><td style="display:flex;gap:6px"><button class="btn btn-sm btn-outline">改密码</button><button class="btn btn-sm btn-danger">删除</button></td></tr>
+            <tr><td><strong>li</strong></td><td>李老师</td><td><span class="role-badge role-badge-user">普通用户</span></td><td>2026-05-12</td><td style="display:flex;gap:6px"><button class="btn btn-sm btn-outline">改密码</button><button class="btn btn-sm btn-danger">删除</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// 页面切换
+function showPage(id) {
+  document.querySelectorAll('.page-container').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(function(el) { el.classList.remove('nav-link-active'); });
+  document.querySelectorAll('.nav-link').forEach(function(el) {
+    if(el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+id+"'")) {
+      el.classList.add('nav-link-active');
+    }
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+
+<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;border-top:1px solid var(--border-light)">
+  教案管理系统 · 演示展示页
+</div>
+
+</body>
+</html>

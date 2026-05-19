@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "id": "user_admin",
+      "username": "admin",
+      "password": "$2a$10$G6b9yXmczkz3Gna48JwfZeVx4ivv90gKoGlioZmnqowOdP07/dHSy",
+      "displayName": "管理员",
+      "role": "admin",
+      "createdAt": "2026-05-19T04:32:40.420Z"
+    }
+  ]
+}

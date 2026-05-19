@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教案管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-brand-logo"></span>
+        <span class="nav-title">教案管理系统</span>
+      </div>
+      <div class="nav-menu">
+        <span class="nav-user">
+          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
+          <span><%= user.displayName %></span>
+        </span>
+        <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
+        <% if (user.role === 'admin') { %>
+          <a href="/users" class="nav-link">用户管理</a>
+        <% } %>
+        <a href="/logout" class="nav-link nav-link-danger">退出</a>
+      </div>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
+        <span class="nav-toggle-bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>我的教案</h2>
+      <span class="page-count">共 <%= plans.length %> 个</span>
+    </div>
+
+    <% if (plans.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-state-title">还没有创建教案</div>
+        <div class="empty-state-desc">点击下方按钮创建你的第一个教案</div>
+        <a href="/plan/new" class="btn btn-primary btn-lg">创建第一个教案</a>
+      </div>
+    <% } else { %>
+      <div class="plan-grid">
+        <% plans.forEach(function(plan) {
+          const imageFiles = plan.files.filter(f => f.type === 'image');
+          const videoFiles = plan.files.filter(f => f.type === 'video');
+        %>
+          <div class="plan-card">
+            <% if (imageFiles.length > 0) { %>
+              <div class="plan-card-thumb">
+                <img src="/uploads/images/<%= imageFiles[0].filename %>" alt="<%= plan.title %>" loading="lazy">
+              </div>
+            <% } else if (videoFiles.length > 0) { %>
+              <div class="plan-card-thumb video-bg">
+                <div class="plan-card-thumb-empty">
+                  <div class="thumb-icon"></div>
+                  <span><%= videoFiles.length %> 个视频</span>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="plan-card-thumb">
+                <div class="plan-card-thumb-empty">
+                  <div class="thumb-icon"></div>
+                  <span>暂无附件</span>
+                </div>
+              </div>
+            <% } %>
+            <div class="plan-card-body">
+              <div class="plan-card-title"><%= plan.title %></div>
+              <div class="plan-card-meta">
+                <span class="plan-card-meta-item"><%= plan.author %></span>
+                <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
+                <span class="plan-card-meta-item"><%= plan.files.length %> 个附件</span>
+              </div>
+              <div class="plan-card-actions">
+                <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
+                <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
+                <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
+                      onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+                  <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </main>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

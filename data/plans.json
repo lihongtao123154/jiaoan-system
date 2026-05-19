@@ -1,0 +1,41 @@
+{
+  "plans": [
+    {
+      "id": "plan_9d8106f4",
+      "title": "12",
+      "content": "1212",
+      "author": "管理员",
+      "authorId": "user_admin",
+      "files": [],
+      "createdAt": "2026-05-19T04:51:55.752Z",
+      "updatedAt": "2026-05-19T04:51:55.752Z"
+    },
+    {
+      "id": "plan_529cd94e",
+      "title": "2",
+      "content": "11",
+      "author": "管理员",
+      "authorId": "user_admin",
+      "files": [
+        {
+          "filename": "1779166679232-4xnkr9t5.png",
+          "originalName": "å±å¹æªå¾ 2025-12-15 190351.png",
+          "type": "image",
+          "mimeType": "image/png",
+          "size": 29917,
+          "uploadedAt": "2026-05-19T04:57:59.234Z"
+        },
+        {
+          "filename": "1779166684984-pfimfo4m.mp4",
+          "originalName": "4æ20æ¥.mp4",
+          "type": "video",
+          "mimeType": "video/mp4",
+          "size": 50065734,
+          "uploadedAt": "2026-05-19T04:58:05.138Z"
+        }
+      ],
+      "createdAt": "2026-05-19T04:58:06.217Z",
+      "updatedAt": "2026-05-19T04:58:06.217Z"
+    }
+  ]
+}
