@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= plan ? '编辑' : '新建' %>教案 - 教案管理系统</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
   <nav class="navbar">
@@ -38,6 +39,26 @@
       <% } %>
 
       <form action="<%= plan ? '/plan/' + plan.id : '/plan' %>" method="POST" class="plan-form" id="planForm">
+        <% if (courses && courses.length > 0) { %>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="courseId">所属课程</label>
+              <select id="courseId" name="courseId" class="form-input">
+                <option value="">不选择</option>
+                <% courses.forEach(function(c) { %>
+                  <option value="<%= c.id %>" <%= plan && plan.courseId === c.id ? 'selected' : '' %>><%= c.name %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="sessionName">课时名称</label>
+              <input type="text" id="sessionName" name="sessionName"
+                     value="<%= plan ? plan.sessionName : '' %>"
+                     placeholder="如：第1课时、第2课时" class="form-input">
+            </div>
+          </div>
+        <% } %>
+
         <div class="form-group">
           <label for="title">教案标题 <span class="required">*</span></label>
           <input type="text" id="title" name="title" required
@@ -46,25 +67,10 @@
         </div>
 
         <div class="form-group">
-          <label for="content">教案内容</label>
-          <p class="form-help">支持 HTML 标签，可以用工具栏快速插入排版</p>
-          <div class="editor-toolbar">
-            <button type="button" class="editor-btn" onclick="wrapText('strong')" title="加粗"><b>B</b></button>
-            <button type="button" class="editor-btn" onclick="wrapText('em')" title="斜体"><i>I</i></button>
-            <button type="button" class="editor-btn" onclick="wrapText('u')" title="下划线"><u>U</u></button>
-            <span class="editor-sep"></span>
-            <button type="button" class="editor-btn" onclick="insertTag('h3')" title="标题">H3</button>
-            <button type="button" class="editor-btn" onclick="insertTag('h4')" title="小标题">H4</button>
-            <span class="editor-sep"></span>
-            <button type="button" class="editor-btn" onclick="insertTag('ul')" title="无序列表">列表</button>
-            <button type="button" class="editor-btn" onclick="insertTag('ol')" title="有序列表">1.</button>
-            <button type="button" class="editor-btn" onclick="insertTag('li')" title="列表项">-</button>
-            <span class="editor-sep"></span>
-            <button type="button" class="editor-btn" onclick="insertTag('p')" title="段落">P</button>
-            <button type="button" class="editor-btn" onclick="insertTag('br')" title="换行">br</button>
-          </div>
-          <textarea id="content" name="content" class="form-input editor-textarea"
-                    placeholder="写下你的教案内容..." rows="15"><%= plan ? plan.content : '' %></textarea>
+          <label>教案内容</label>
+          <p class="form-help">使用下方编辑器排版，所见即所得</p>
+          <div id="editorContainer" class="form-input" style="height:400px"><%= plan ? plan.content : '' %></div>
+          <input type="hidden" name="content" id="contentInput">
         </div>
 
         <div class="form-group">
@@ -102,6 +108,24 @@
                  value='<%= plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
         </div>
 
+        <div class="form-group">
+          <label>封面图片</label>
+          <p class="form-help">上传一张封面图，在首页会显示在教案卡片上</p>
+          <div class="cover-upload" id="coverUpload">
+            <% if (plan && plan.coverUrl) { %>
+              <img src="<%= plan.coverUrl %>" class="cover-preview" id="coverPreview">
+            <% } else { %>
+              <img src="" class="cover-preview" id="coverPreview" style="display:none">
+            <% } %>
+            <div class="cover-actions">
+              <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('coverInput').click()">选择图片</button>
+              <button type="button" class="btn btn-sm btn-danger" id="removeCoverBtn" style="display:<%= plan && plan.coverUrl ? 'inline-block' : 'none' %>" onclick="removeCover()">移除</button>
+            </div>
+            <input type="file" id="coverInput" accept="image/*" hidden>
+            <input type="hidden" name="coverUrl" id="coverUrlInput" value="<%= plan ? plan.coverUrl : '' %>">
+          </div>
+        </div>
+
         <div class="form-actions">
           <a href="/dashboard" class="btn btn-outline btn-lg">取消</a>
           <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">
@@ -112,67 +136,64 @@
     </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
   <script src="/js/main.js"></script>
   <script>
-    // 编辑器工具栏
-    function getTextarea() { return document.getElementById('content'); }
-
-    function wrapText(tag) {
-      const ta = getTextarea();
-      const start = ta.selectionStart;
-      const end = ta.selectionEnd;
-      const selected = ta.value.substring(start, end);
-      const before = ta.value.substring(0, start);
-      const after = ta.value.substring(end);
-      const replacement = selected ? '<' + tag + '>' + selected + '</' + tag + '>' : '<' + tag + '></' + tag + '>';
-      ta.value = before + replacement + after;
-      const newPos = start + replacement.length;
-      ta.setSelectionRange(newPos, newPos);
-      ta.focus();
-    }
-
-    function insertTag(tag) {
-      const ta = getTextarea();
-      const start = ta.selectionStart;
-      const before = ta.value.substring(0, start);
-      const after = ta.value.substring(ta.selectionEnd);
-      var insertion;
-      switch (tag) {
-        case 'br': insertion = '<br>\n'; break;
-        case 'li': insertion = '<li></li>\n'; break;
-        case 'h3': insertion = '<h3></h3>\n'; break;
-        case 'h4': insertion = '<h4></h4>\n'; break;
-        case 'p': insertion = '<p></p>\n'; break;
-        case 'ul': insertion = '<ul>\n  <li></li>\n</ul>\n'; break;
-        case 'ol': insertion = '<ol>\n  <li></li>\n</ol>\n'; break;
-        default: insertion = '<' + tag + '></' + tag + '>';
+    // Quill 编辑器
+    const quill = new Quill('#editorContainer', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ indent: '-1' }, { indent: '+1' }],
+          [{ align: [] }],
+          ['blockquote', 'code-block'],
+          [{ color: [] }, { background: [] }],
+          ['link'],
+          ['clean']
+        ]
       }
-      ta.value = before + insertion + after;
-      const newPos = start + insertion.length;
-      ta.setSelectionRange(newPos, newPos);
-      ta.focus();
-    }
+    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const ta = getTextarea();
-      if (ta) {
-        ta.addEventListener('keydown', function(e) {
-          if (e.key === 'Tab') {
-            e.preventDefault();
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 2;
-          }
-        });
-      }
-
-      // 保存按钮点击反馈
-      document.getElementById('planForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true;
-        btn.textContent = '保存中...';
+    // 封面上传
+    document.getElementById('coverInput').addEventListener('change', function() {
+      if (this.files.length === 0) return;
+      const file = this.files[0];
+      if (file.size > 5 * 1024 * 1024) { alert('封面图不能超过 5MB'); return; }
+      const formData = new FormData();
+      formData.append('file', file);
+      const xhr = new XMLHttpRequest();
+      xhr.addEventListener('load', function() {
+        if (xhr.status === 200) {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            if (resp.success) {
+              document.getElementById('coverUrlInput').value = resp.file.url || '/uploads/images/' + resp.file.filename;
+              document.getElementById('coverPreview').src = resp.file.url || '/uploads/images/' + resp.file.filename;
+              document.getElementById('coverPreview').style.display = 'block';
+              document.getElementById('removeCoverBtn').style.display = 'inline-block';
+            } else { alert(resp.error || '上传失败'); }
+          } catch(e) { alert('上传失败'); }
+        } else { alert('上传失败'); }
       });
+      xhr.open('POST', '/upload', true);
+      xhr.send(formData);
+    });
+
+    function removeCover() {
+      document.getElementById('coverUrlInput').value = '';
+      document.getElementById('coverPreview').src = '';
+      document.getElementById('coverPreview').style.display = 'none';
+      document.getElementById('removeCoverBtn').style.display = 'none';
+    }
+
+    document.getElementById('planForm').addEventListener('submit', function(e) {
+      document.getElementById('contentInput').value = quill.root.innerHTML;
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = '保存中...';
     });
 
     // 文件上传

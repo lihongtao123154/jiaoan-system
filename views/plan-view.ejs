@@ -43,6 +43,8 @@
       <div class="detail-header">
         <h1 class="detail-title"><%= plan.title %></h1>
         <div class="detail-meta">
+          <% if (course) { %><span class="detail-course-badge"><%= course.name %></span><% } %>
+          <% if (plan.sessionName) { %><span class="detail-course-badge"><%= plan.sessionName %></span><% } %>
           <span><%= plan.author %></span>
           <span><%= formatDate(plan.updatedAt) %></span>
         </div>

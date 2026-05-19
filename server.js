@@ -118,7 +118,8 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    const safeName = Date.now() + '-' + Math.random().toString(36).substring(2, 10) + ext;
+    const base = path.basename(file.originalname, ext).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
+    const safeName = Date.now() + '_' + base + ext;
     cb(null, safeName);
   }
 });
@@ -166,8 +167,18 @@ db.exec(`
     author TEXT NOT NULL,
     authorId TEXT NOT NULL,
     files TEXT DEFAULT '[]',
+    courseId TEXT DEFAULT '',
+    sessionName TEXT DEFAULT '',
+    coverUrl TEXT DEFAULT '',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS courses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    createdAt TEXT NOT NULL
   );
 `);
 
@@ -259,21 +270,42 @@ function getPlanById(id) {
   return db.prepare('SELECT * FROM plans WHERE id = ?').get(id);
 }
 
-function createPlan(title, content, author, authorId, files) {
+function createPlan(title, content, author, authorId, files, courseId, sessionName, coverUrl) {
   const id = 'plan_' + uuidv4().slice(0, 8);
   const now = new Date().toISOString();
-  db.prepare('INSERT INTO plans (id, title, content, author, authorId, files, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(id, title, content || '', author, authorId, JSON.stringify(files || []), now, now);
+  db.prepare('INSERT INTO plans (id, title, content, author, authorId, files, courseId, sessionName, coverUrl, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, title, content || '', author, authorId, JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', now, now);
   return id;
 }
 
-function updatePlan(id, title, content, files) {
-  db.prepare('UPDATE plans SET title = ?, content = ?, files = ?, updatedAt = ? WHERE id = ?')
-    .run(title, content || '', JSON.stringify(files || []), new Date().toISOString(), id);
+function updatePlan(id, title, content, files, courseId, sessionName, coverUrl) {
+  db.prepare('UPDATE plans SET title = ?, content = ?, files = ?, courseId = ?, sessionName = ?, coverUrl = ?, updatedAt = ? WHERE id = ?')
+    .run(title, content || '', JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', new Date().toISOString(), id);
 }
 
 function deletePlan(id) {
   db.prepare('DELETE FROM plans WHERE id = ?').run(id);
+}
+
+// ==================== 课程查询 ====================
+function getAllCourses() {
+  return db.prepare('SELECT * FROM courses ORDER BY createdAt DESC').all();
+}
+function getCourseById(id) {
+  return db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
+}
+function createCourse(name, description) {
+  const id = 'course_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT INTO courses (id, name, description, createdAt) VALUES (?, ?, ?, ?)')
+    .run(id, name, description || '', new Date().toISOString());
+  return id;
+}
+function updateCourse(id, name, description) {
+  db.prepare('UPDATE courses SET name = ?, description = ? WHERE id = ?').run(name, description || '', id);
+}
+function deleteCourse(id) {
+  db.prepare('DELETE FROM courses WHERE id = ?').run(id);
+  db.prepare("UPDATE plans SET courseId = '' WHERE courseId = ?").run(id);
 }
 
 // 解析计划中的文件字段（从 JSON 字符串转为对象）
@@ -435,23 +467,58 @@ app.post('/users/password/:id', isAuthenticated, isAdmin, (req, res) => {
   res.render('users', { users, error: null, success: '用户 ' + user.displayName + ' 密码已更新' });
 });
 
+// ==================== 路由: 课程管理 ====================
+app.get('/courses', isAuthenticated, isAdmin, (req, res) => {
+  const courses = getAllCourses();
+  res.render('courses', { courses, error: null, success: null });
+});
+
+app.post('/courses/add', isAuthenticated, isAdmin, (req, res) => {
+  const { name, description } = req.body;
+  if (!name || !name.trim()) {
+    const courses = getAllCourses();
+    return res.render('courses', { courses, error: '请输入课程名称', success: null });
+  }
+  createCourse(name.trim(), description);
+  const courses = getAllCourses();
+  res.render('courses', { courses, error: null, success: '课程「' + name.trim() + '」已创建' });
+});
+
+app.post('/courses/edit/:id', isAuthenticated, isAdmin, (req, res) => {
+  const { name, description } = req.body;
+  if (!name || !name.trim()) {
+    const courses = getAllCourses();
+    return res.render('courses', { courses, error: '请输入课程名称', success: null });
+  }
+  updateCourse(req.params.id, name.trim(), description);
+  res.redirect('/courses');
+});
+
+app.post('/courses/delete/:id', isAuthenticated, isAdmin, (req, res) => {
+  deleteCourse(req.params.id);
+  res.redirect('/courses');
+});
+
 // ==================== 路由: 教案管理 ====================
 app.get('/dashboard', isAuthenticated, async (req, res, next) => {
   try {
     const plans = getAllPlans().map(parsePlanFiles);
+    const courses = getAllCourses();
     for (const plan of plans) await enrichPlanFiles(plan);
-    res.render('dashboard', { plans });
+    res.render('dashboard', { plans, courses });
   } catch (e) { next(e); }
 });
 
 app.get('/plan/new', isAuthenticated, (req, res) => {
-  res.render('plan-edit', { plan: null, error: null });
+  const courses = getAllCourses();
+  res.render('plan-edit', { plan: null, error: null, courses });
 });
 
 app.post('/plan', isAuthenticated, (req, res) => {
-  const { title, content, fileList } = req.body;
+  const { title, content, fileList, courseId, sessionName, coverUrl } = req.body;
   if (!title || !title.trim()) {
-    return res.render('plan-edit', { plan: null, error: '请输入教案标题' });
+    const courses = getAllCourses();
+    return res.render('plan-edit', { plan: null, error: '请输入教案标题', courses });
   }
 
   let parsedFiles = [];
@@ -459,7 +526,7 @@ app.post('/plan', isAuthenticated, (req, res) => {
     try { parsedFiles = JSON.parse(fileList); } catch (e) { /* keep empty */ }
   }
 
-  createPlan(title.trim(), content || '', req.session.user.displayName, req.session.user.id, parsedFiles);
+  createPlan(title.trim(), content || '', req.session.user.displayName, req.session.user.id, parsedFiles, courseId, sessionName, coverUrl);
   res.redirect('/dashboard');
 });
 
@@ -470,7 +537,8 @@ app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
       return res.status(404).send('教案不存在');
     }
     await enrichPlanFiles(plan);
-    res.render('plan-view', { plan });
+    const course = plan.courseId ? getCourseById(plan.courseId) : null;
+    res.render('plan-view', { plan, course });
   } catch (e) { next(e); }
 });
 
@@ -479,14 +547,16 @@ app.get('/plan/:id/edit', isAuthenticated, (req, res) => {
   if (!plan) {
     return res.status(404).send('教案不存在');
   }
-  res.render('plan-edit', { plan, error: null });
+  const courses = getAllCourses();
+  res.render('plan-edit', { plan, error: null, courses });
 });
 
 app.post('/plan/:id', isAuthenticated, (req, res) => {
-  const { title, content, fileList } = req.body;
+  const { title, content, fileList, courseId, sessionName, coverUrl } = req.body;
   if (!title || !title.trim()) {
     const plan = parsePlanFiles(getPlanById(req.params.id));
-    return res.render('plan-edit', { plan, error: '请输入教案标题' });
+    const courses = getAllCourses();
+    return res.render('plan-edit', { plan, error: '请输入教案标题', courses });
   }
 
   const existing = getPlanById(req.params.id);
@@ -499,7 +569,7 @@ app.post('/plan/:id', isAuthenticated, (req, res) => {
     try { parsedFiles = JSON.parse(fileList); } catch (e) { /* keep empty */ }
   }
 
-  updatePlan(req.params.id, title.trim(), content || '', parsedFiles);
+  updatePlan(req.params.id, title.trim(), content || '', parsedFiles, courseId, sessionName, coverUrl);
   res.redirect('/dashboard');
 });
 

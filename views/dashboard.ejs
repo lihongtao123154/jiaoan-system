@@ -20,6 +20,7 @@
         </span>
         <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
         <% if (user.role === 'admin') { %>
+          <a href="/courses" class="nav-link">课程管理</a>
           <a href="/users" class="nav-link">用户管理</a>
         <% } %>
         <a href="/logout" class="nav-link nav-link-danger">退出</a>
@@ -34,7 +35,18 @@
     <div class="page-header">
       <h2>我的教案</h2>
       <span class="page-count">共 <%= plans.length %> 个</span>
+      <div style="margin-left:auto"><a href="/plan/new" class="btn btn-primary">+ 新建教案</a></div>
     </div>
+
+    <% if (courses.length > 0) { %>
+      <div class="course-tabs">
+        <button class="course-tab active" data-filter="all">全部</button>
+        <% courses.forEach(function(c) { %>
+          <button class="course-tab" data-filter="<%= c.id %>"><%= c.name %></button>
+        <% }); %>
+        <button class="course-tab" data-filter="none">未分类</button>
+      </div>
+    <% } %>
 
     <% if (plans.length === 0) { %>
       <div class="empty-state">
@@ -43,52 +55,121 @@
         <a href="/plan/new" class="btn btn-primary btn-lg">创建第一个教案</a>
       </div>
     <% } else { %>
-      <div class="plan-grid">
-        <% plans.forEach(function(plan) {
-          const imageFiles = plan.files.filter(f => f.type === 'image');
-          const videoFiles = plan.files.filter(f => f.type === 'video');
-        %>
-          <div class="plan-card">
-            <% if (imageFiles.length > 0) { %>
-              <div class="plan-card-thumb">
-                <img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy">
-              </div>
-            <% } else if (videoFiles.length > 0) { %>
-              <div class="plan-card-thumb video-bg">
-                <div class="plan-card-thumb-empty">
-                  <div class="thumb-icon"></div>
-                  <span><%= videoFiles.length %> 个视频</span>
-                </div>
-              </div>
-            <% } else { %>
-              <div class="plan-card-thumb">
-                <div class="plan-card-thumb-empty">
-                  <div class="thumb-icon"></div>
-                  <span>暂无附件</span>
-                </div>
-              </div>
-            <% } %>
-            <div class="plan-card-body">
-              <div class="plan-card-title"><%= plan.title %></div>
-              <div class="plan-card-meta">
-                <span class="plan-card-meta-item"><%= plan.author %></span>
-                <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
-                <span class="plan-card-meta-item"><%= plan.files.length %> 个附件</span>
-              </div>
-              <div class="plan-card-actions">
-                <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
-                <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
-                <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
-                      onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
-                  <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                </form>
-              </div>
-            </div>
+      <% courses.forEach(function(c) {
+        const coursePlans = plans.filter(function(p) { return p.courseId === c.id; });
+        if (coursePlans.length === 0) return;
+      %>
+        <div class="course-section" data-course="<%= c.id %>">
+          <div class="course-section-header">
+            <h3 class="course-section-title"><%= c.name %></h3>
+            <span class="course-section-count"><%= coursePlans.length %> 个教案</span>
           </div>
-        <% }); %>
-      </div>
+          <div class="plan-grid">
+            <% coursePlans.forEach(function(plan) {
+              const imageFiles = plan.files.filter(f => f.type === 'image');
+              const videoFiles = plan.files.filter(f => f.type === 'video');
+            %>
+              <div class="plan-card">
+                <% if (plan.coverUrl) { %>
+                  <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
+                <% } else if (imageFiles.length > 0) { %>
+                  <div class="plan-card-thumb"><img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy"></div>
+                <% } else if (videoFiles.length > 0) { %>
+                  <div class="plan-card-thumb video-bg">
+                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span><%= videoFiles.length %> 个视频</span></div>
+                  </div>
+                <% } else { %>
+                  <div class="plan-card-thumb">
+                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>暂无附件</span></div>
+                  </div>
+                <% } %>
+                <div class="plan-card-body">
+                  <% if (plan.sessionName) { %><div class="plan-card-session"><%= plan.sessionName %></div><% } %>
+                  <div class="plan-card-title"><%= plan.title %></div>
+                  <div class="plan-card-meta">
+                    <span class="plan-card-meta-item"><%= plan.author %></span>
+                    <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
+                    <span class="plan-card-meta-item"><%= plan.files.length %> 个附件</span>
+                  </div>
+                  <div class="plan-card-actions">
+                    <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
+                    <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
+                    <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
+                          onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+
+      <% var uncategorized = plans.filter(function(p) { return !p.courseId; }); %>
+      <% if (uncategorized.length > 0) { %>
+        <div class="course-section" data-course="none">
+          <div class="course-section-header">
+            <h3 class="course-section-title">未分类</h3>
+            <span class="course-section-count"><%= uncategorized.length %> 个教案</span>
+          </div>
+          <div class="plan-grid">
+            <% uncategorized.forEach(function(plan) {
+              const imageFiles = plan.files.filter(f => f.type === 'image');
+              const videoFiles = plan.files.filter(f => f.type === 'video');
+            %>
+              <div class="plan-card">
+                <% if (plan.coverUrl) { %>
+                  <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
+                <% } else if (imageFiles.length > 0) { %>
+                  <div class="plan-card-thumb"><img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy"></div>
+                <% } else if (videoFiles.length > 0) { %>
+                  <div class="plan-card-thumb video-bg">
+                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span><%= videoFiles.length %> 个视频</span></div>
+                  </div>
+                <% } else { %>
+                  <div class="plan-card-thumb">
+                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>暂无附件</span></div>
+                  </div>
+                <% } %>
+                <div class="plan-card-body">
+                  <% if (plan.sessionName) { %><div class="plan-card-session"><%= plan.sessionName %></div><% } %>
+                  <div class="plan-card-title"><%= plan.title %></div>
+                  <div class="plan-card-meta">
+                    <span class="plan-card-meta-item"><%= plan.author %></span>
+                    <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
+                    <span class="plan-card-meta-item"><%= plan.files.length %> 个附件</span>
+                  </div>
+                  <div class="plan-card-actions">
+                    <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
+                    <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
+                    <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
+                          onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
     <% } %>
   </main>
+
+  <script>
+    // 课程筛选
+    document.querySelectorAll('.course-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.course-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.dataset.filter;
+        document.querySelectorAll('.course-section').forEach(function(section) {
+          section.style.display = (filter === 'all' || section.dataset.course === filter) ? 'block' : 'none';
+        });
+      });
+    });
+  </script>
 
   <script src="/js/main.js"></script>
 </body>

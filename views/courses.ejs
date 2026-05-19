@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课程管理 - 教案管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-brand-logo"></span>
+        <span class="nav-title">教案管理系统</span>
+      </div>
+      <div class="nav-menu">
+        <span class="nav-user">
+          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
+          <span><%= user.displayName %></span>
+        </span>
+        <a href="/dashboard" class="nav-link">首页</a>
+        <a href="/users" class="nav-link">用户管理</a>
+        <a href="/logout" class="nav-link nav-link-danger">退出</a>
+      </div>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
+        <span class="nav-toggle-bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>课程管理</h2>
+      <span class="page-count"><%= courses.length %> 门课程</span>
+    </div>
+
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+    <div style="margin-bottom:24px">
+      <button class="btn btn-primary" onclick="document.getElementById('addForm').style.display='block'">+ 新建课程</button>
+    </div>
+
+    <div class="card" id="addForm" style="display:<%= error ? 'block' : 'none' %>;margin-bottom:24px">
+      <div class="card-body">
+        <form action="/courses/add" method="POST">
+          <div class="inline-form-row">
+            <input type="text" name="name" placeholder="课程名称，如：三年级数学上册" required class="form-input" style="flex:3">
+            <input type="text" name="description" placeholder="课程描述（可选）" class="form-input" style="flex:2">
+            <button type="submit" class="btn btn-primary">创建</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>课程名称</th>
+              <th>描述</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (courses.length === 0) { %>
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">还没有创建课程</td></tr>
+            <% } %>
+            <% courses.forEach(function(c) { %>
+              <tr>
+                <td><strong><%= c.name %></strong></td>
+                <td style="color:var(--text-secondary)"><%= c.description || '-' %></td>
+                <td><%= formatDate(c.createdAt) %></td>
+                <td>
+                  <div class="action-cell">
+                    <button class="btn btn-sm btn-outline" onclick="editCourse('<%= c.id %>','<%= c.name.replace(/'/g,"\\'") %>','<%= (c.description||'').replace(/'/g,"\\'") %>')">编辑</button>
+                    <form action="/courses/delete/<%= c.id %>" method="POST" style="display:inline" onsubmit="return confirm('删除课程不会删除教案，但教案将不再属于该课程。确定删除？')">
+                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="editModal" style="display:none" onclick="if(event.target===this)closeEdit()">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-header-title">编辑课程</span>
+        <button class="modal-close" onclick="closeEdit()">&times;</button>
+      </div>
+      <form action="" method="POST" id="editForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>课程名称</label>
+            <input type="text" name="name" id="editName" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label>课程描述</label>
+            <input type="text" name="description" id="editDesc" class="form-input">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeEdit()">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function editCourse(id, name, desc) {
+      document.getElementById('editForm').action = '/courses/edit/' + id;
+      document.getElementById('editName').value = name;
+      document.getElementById('editDesc').value = desc;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+    function closeEdit() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+  </script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
