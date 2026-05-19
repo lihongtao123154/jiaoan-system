@@ -54,8 +54,10 @@ app.locals.formatFileSize = function (bytes) {
 // ==================== 文件上传配置 ====================
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const isImage = file.mimetype.startsWith('image/');
-    const subfolder = isImage ? 'images' : 'videos';
+    const mime = file.mimetype;
+    let subfolder = 'images';
+    if (mime.startsWith('video/')) subfolder = 'videos';
+    else if (!mime.startsWith('image/')) subfolder = 'docs';
     const dir = path.join(__dirname, 'uploads', subfolder);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -69,22 +71,19 @@ const storage = multer.diskStorage({
   }
 });
 
+const ALLOWED_EXTS = /\.(jpg|jpeg|png|gif|webp|bmp|svg|mp4|webm|avi|mov|wmv|flv|mkv|pdf|ppt|pptx|doc|docx|xls|xlsx|txt|zip|rar)$/i;
 const fileFilter = (req, file, cb) => {
-  const imageTypes = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i;
-  const videoTypes = /\.(mp4|webm|avi|mov|wmv|flv|mkv)$/i;
-  if (imageTypes.test(path.extname(file.originalname))) {
-    cb(null, true);
-  } else if (videoTypes.test(path.extname(file.originalname))) {
+  if (ALLOWED_EXTS.test(path.extname(file.originalname))) {
     cb(null, true);
   } else {
-    cb(new Error('不支持的文件格式，请上传图片(jpg/png/gif/webp)或视频(mp4/webm/avi/mov)'));
+    cb(new Error('不支持的文件格式'));
   }
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 2048 * 1024 * 1024 }
+  limits: { fileSize: 3 * 1024 * 1024 * 1024 }
 });
 
 // ==================== 数据库 ====================
@@ -456,7 +455,7 @@ app.post('/plan/:id/delete', isAuthenticated, (req, res) => {
   const files = JSON.parse(plan.files || '[]');
   if (files.length > 0) {
     files.forEach(f => {
-      const subfolder = f.type === 'video' ? 'videos' : 'images';
+      const subfolder = f.type === 'video' ? 'videos' : f.type === 'image' ? 'images' : 'docs';
       const filePath = path.join(__dirname, 'uploads', subfolder, f.filename);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -474,7 +473,7 @@ app.post('/upload', isAuthenticated, (req, res) => {
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: '文件大小超过限制(最大2GB)' });
+          return res.status(400).json({ error: '文件大小超过限制(最大3GB)' });
         }
         return res.status(400).json({ error: '上传错误: ' + err.message });
       }
@@ -485,12 +484,16 @@ app.post('/upload', isAuthenticated, (req, res) => {
       return res.status(400).json({ error: '请选择文件' });
     }
 
-    const isImage = req.file.mimetype.startsWith('image/');
+    const mime = req.file.mimetype;
+    let fileType;
+    if (mime.startsWith('image/')) fileType = 'image';
+    else if (mime.startsWith('video/')) fileType = 'video';
+    else fileType = 'document';
     const fileInfo = {
       filename: req.file.filename,
       originalName: req.file.originalname,
-      type: isImage ? 'image' : 'video',
-      mimeType: req.file.mimetype,
+      type: fileType,
+      mimeType: mime,
       size: req.file.size,
       uploadedAt: new Date().toISOString()
     };
@@ -505,9 +508,8 @@ app.post('/upload/delete', isAuthenticated, (req, res) => {
     return res.status(400).json({ error: '参数错误' });
   }
 
-  const subfolder = type === 'video' ? 'videos' : 'images';
+  const subfolder = type === 'video' ? 'videos' : type === 'image' ? 'images' : 'docs';
   const filePath = path.join(__dirname, 'uploads', subfolder, filename);
-
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }

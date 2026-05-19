@@ -95,6 +95,27 @@
         </div>
       <% } %>
 
+      <% const docs = plan.files.filter(f => f.type !== 'image' && f.type !== 'video'); %>
+      <% if (docs.length > 0) { %>
+        <div class="detail-section">
+          <div class="section-label">文档附件 (<%= docs.length %>)</div>
+          <div class="doc-list">
+            <% docs.forEach(function(doc) { %>
+              <div class="doc-item">
+                <a href="/uploads/docs/<%= doc.filename %>" target="_blank" class="doc-link">
+                  <span class="doc-icon">
+                    <% var ext = doc.originalName.split('.').pop().toLowerCase(); %>
+                    <%= ext === 'pdf' ? 'PDF' : ext === 'ppt' || ext === 'pptx' ? 'PPT' : ext === 'doc' || ext === 'docx' ? 'DOC' : ext === 'xls' || ext === 'xlsx' ? 'XLS' : 'ZIP' %>
+                  </span>
+                  <span class="doc-name"><%= doc.originalName %></span>
+                  <span class="doc-size"><%= formatFileSize(doc.size) %></span>
+                </a>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
       <% if (plan.files.length === 0) { %>
         <div class="detail-section">
           <div class="files-empty">此教案暂未添加附件</div>
