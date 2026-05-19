@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "教案管理系统 - 支持图片视频上传、多用户登录",
   "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js"
   },
