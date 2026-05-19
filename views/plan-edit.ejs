@@ -269,7 +269,7 @@
     var cosInstance = null;
     function getCOS() {
       if (cosInstance) return Promise.resolve(cosInstance);
-      return fetch('/cos/sts').then(function(r) { return r.json(); }).then(function(data) {
+      return fetch('/cos/sts', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(data) {
         if (!data.success) throw new Error(data.error || '获取凭证失败');
         cosInstance = new COS({
           getAuthorization: function(options, callback) {
