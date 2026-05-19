@@ -51,6 +51,58 @@ app.locals.formatFileSize = function (bytes) {
   return size.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
 };
 
+// ==================== 腾讯云 COS ====================
+const COS = require('cos-nodejs-sdk-v5');
+const cosSecretId = process.env.COS_SECRET_ID;
+const cosSecretKey = process.env.COS_SECRET_KEY;
+const cosBucket = process.env.COS_BUCKET;
+const cosRegion = process.env.COS_REGION;
+const useCOS = !!(cosSecretId && cosSecretKey && cosBucket && cosRegion);
+let cosClient;
+if (useCOS) {
+  cosClient = new COS({ SecretId: cosSecretId, SecretKey: cosSecretKey });
+  console.log('[COS] 已启用腾讯云对象存储');
+}
+
+function getCOSKey(file) {
+  return (file.type === 'video' ? 'videos' : file.type === 'image' ? 'images' : 'docs') + '/' + file.filename;
+}
+
+function uploadToCOS(localPath, cosKey) {
+  return new Promise((resolve, reject) => {
+    cosClient.putObject({
+      Bucket: cosBucket, Region: cosRegion, Key: cosKey,
+      Body: fs.createReadStream(localPath),
+      ContentLength: fs.statSync(localPath).size
+    }, (err) => err ? reject(err) : resolve());
+  });
+}
+
+function deleteFromCOS(cosKey) {
+  return new Promise((resolve, reject) => {
+    cosClient.deleteObject({
+      Bucket: cosBucket, Region: cosRegion, Key: cosKey
+    }, (err) => err ? reject(err) : resolve());
+  });
+}
+
+function getPresignedUrl(cosKey) {
+  return new Promise((resolve, reject) => {
+    cosClient.getObjectUrl({
+      Bucket: cosBucket, Region: cosRegion, Key: cosKey,
+      Sign: true, Expires: 4 * 3600
+    }, (err, data) => err ? reject(err) : resolve(data.Url));
+  });
+}
+
+async function enrichPlanFiles(plan) {
+  if (!plan || !plan.files) return;
+  for (const file of plan.files) {
+    const cosKey = getCOSKey(file);
+    file.url = useCOS ? await getPresignedUrl(cosKey) : '/uploads/' + cosKey;
+  }
+}
+
 // ==================== 文件上传配置 ====================
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -384,9 +436,12 @@ app.post('/users/password/:id', isAuthenticated, isAdmin, (req, res) => {
 });
 
 // ==================== 路由: 教案管理 ====================
-app.get('/dashboard', isAuthenticated, (req, res) => {
-  const plans = getAllPlans().map(parsePlanFiles);
-  res.render('dashboard', { plans });
+app.get('/dashboard', isAuthenticated, async (req, res, next) => {
+  try {
+    const plans = getAllPlans().map(parsePlanFiles);
+    for (const plan of plans) await enrichPlanFiles(plan);
+    res.render('dashboard', { plans });
+  } catch (e) { next(e); }
 });
 
 app.get('/plan/new', isAuthenticated, (req, res) => {
@@ -408,12 +463,15 @@ app.post('/plan', isAuthenticated, (req, res) => {
   res.redirect('/dashboard');
 });
 
-app.get('/plan/:id', isAuthenticated, (req, res) => {
-  const plan = parsePlanFiles(getPlanById(req.params.id));
-  if (!plan) {
-    return res.status(404).send('教案不存在');
-  }
-  res.render('plan-view', { plan });
+app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
+  try {
+    const plan = parsePlanFiles(getPlanById(req.params.id));
+    if (!plan) {
+      return res.status(404).send('教案不存在');
+    }
+    await enrichPlanFiles(plan);
+    res.render('plan-view', { plan });
+  } catch (e) { next(e); }
 });
 
 app.get('/plan/:id/edit', isAuthenticated, (req, res) => {
@@ -460,6 +518,9 @@ app.post('/plan/:id/delete', isAuthenticated, (req, res) => {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
+      if (useCOS) {
+        deleteFromCOS(subfolder + '/' + f.filename).catch(() => {});
+      }
     });
   }
 
@@ -469,7 +530,7 @@ app.post('/plan/:id/delete', isAuthenticated, (req, res) => {
 
 // ==================== 路由: 文件上传 ====================
 app.post('/upload', isAuthenticated, (req, res) => {
-  upload.single('file')(req, res, function (err) {
+  upload.single('file')(req, res, async function (err) {
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
@@ -489,6 +550,7 @@ app.post('/upload', isAuthenticated, (req, res) => {
     if (mime.startsWith('image/')) fileType = 'image';
     else if (mime.startsWith('video/')) fileType = 'video';
     else fileType = 'document';
+
     const fileInfo = {
       filename: req.file.filename,
       originalName: req.file.originalname,
@@ -497,6 +559,17 @@ app.post('/upload', isAuthenticated, (req, res) => {
       size: req.file.size,
       uploadedAt: new Date().toISOString()
     };
+
+    // 如果启用了 COS，上传到 COS 并删除本地文件
+    if (useCOS) {
+      try {
+        const cosKey = getCOSKey(fileInfo);
+        await uploadToCOS(req.file.path, cosKey);
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        return res.status(500).json({ error: '上传到云存储失败: ' + e.message });
+      }
+    }
 
     res.json({ success: true, file: fileInfo });
   });
@@ -508,10 +581,17 @@ app.post('/upload/delete', isAuthenticated, (req, res) => {
     return res.status(400).json({ error: '参数错误' });
   }
 
+  // 删除本地文件
   const subfolder = type === 'video' ? 'videos' : type === 'image' ? 'images' : 'docs';
   const filePath = path.join(__dirname, 'uploads', subfolder, filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
+  }
+
+  // 如果启用 COS，同时删除 COS 上的文件
+  if (useCOS) {
+    const cosKey = subfolder + '/' + filename;
+    deleteFromCOS(cosKey).catch(() => {});
   }
 
   res.json({ success: true });

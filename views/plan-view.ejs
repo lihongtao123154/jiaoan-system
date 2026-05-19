@@ -62,8 +62,8 @@
           <div class="image-gallery">
             <% images.forEach(function(img) { %>
               <div class="gallery-item">
-                <a href="/uploads/images/<%= img.filename %>" target="_blank" class="gallery-link">
-                  <img src="/uploads/images/<%= img.filename %>"
+                <a href="<%= img.url %>" target="_blank" class="gallery-link">
+                  <img src="<%= img.url %>"
                        alt="<%= img.originalName %>" loading="lazy"
                        title="<%= img.originalName %> (<%= formatFileSize(img.size) %>)">
                 </a>
@@ -83,7 +83,7 @@
               <div class="video-card">
                 <video controls preload="metadata" class="video-player"
                        onerror="this.parentElement.innerHTML='<div class=\\'video-error\\'>视频加载失败: <%= vid.originalName %></div>'">
-                  <source src="/uploads/videos/<%= vid.filename %>" type="<%= vid.mimeType || 'video/mp4' %>">
+                  <source src="<%= vid.url %>" type="<%= vid.mimeType || 'video/mp4' %>">
                   您的浏览器不支持视频播放
                 </video>
                 <div class="video-card-info">
@@ -102,7 +102,7 @@
           <div class="doc-list">
             <% docs.forEach(function(doc) { %>
               <div class="doc-item">
-                <a href="/uploads/docs/<%= doc.filename %>" target="_blank" class="doc-link">
+                <a href="<%= doc.url %>" target="_blank" class="doc-link">
                   <span class="doc-icon">
                     <% var ext = doc.originalName.split('.').pop().toLowerCase(); %>
                     <%= ext === 'pdf' ? 'PDF' : ext === 'ppt' || ext === 'pptx' ? 'PPT' : ext === 'doc' || ext === 'docx' ? 'DOC' : ext === 'xls' || ext === 'xlsx' ? 'XLS' : 'ZIP' %>

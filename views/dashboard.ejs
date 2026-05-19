@@ -51,7 +51,7 @@
           <div class="plan-card">
             <% if (imageFiles.length > 0) { %>
               <div class="plan-card-thumb">
-                <img src="/uploads/images/<%= imageFiles[0].filename %>" alt="<%= plan.title %>" loading="lazy">
+                <img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy">
               </div>
             <% } else if (videoFiles.length > 0) { %>
               <div class="plan-card-thumb video-bg">
