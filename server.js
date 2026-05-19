@@ -84,7 +84,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 500 * 1024 * 1024 }
+  limits: { fileSize: 2048 * 1024 * 1024 }
 });
 
 // ==================== 数据库 ====================
@@ -474,7 +474,7 @@ app.post('/upload', isAuthenticated, (req, res) => {
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: '文件大小超过限制(最大500MB)' });
+          return res.status(400).json({ error: '文件大小超过限制(最大2GB)' });
         }
         return res.status(400).json({ error: '上传错误: ' + err.message });
       }
