@@ -112,7 +112,7 @@ const stsClient = useCOS ? new StsClient({
   region: cosRegion
 }) : null;
 
-app.post('/cos/sts', isAuthenticated, (req, res) => {
+app.get('/cos/sts', isAuthenticated, (req, res) => {
   if (!useCOS) return res.status(400).json({ error: '未配置 COS' });
   stsClient.GetFederationToken({
     Name: 'upload',
