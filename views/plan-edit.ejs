@@ -6,6 +6,7 @@
   <title><%= plan ? '编辑' : '新建' %>教案 - 教案管理系统</title>
   <link rel="stylesheet" href="/css/style.css">
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js"></script>
 </head>
 <body>
   <nav class="navbar">
@@ -264,8 +265,39 @@
       if (this.files.length > 0) { uploadFiles(this.files); this.value = ''; }
     });
 
+    // COS JS SDK 实例（延迟初始化）
+    var cosInstance = null;
+    function getCOS() {
+      if (cosInstance) return Promise.resolve(cosInstance);
+      return fetch('/cos/sts').then(function(r) { return r.json(); }).then(function(data) {
+        if (!data.success) throw new Error(data.error || '获取凭证失败');
+        cosInstance = new COS({
+          getAuthorization: function(options, callback) {
+            callback({
+              TmpSecretId: data.tmpSecretId,
+              TmpSecretKey: data.tmpSecretKey,
+              SecurityToken: data.securityToken,
+              StartTime: Math.floor(Date.now() / 1000),
+              ExpiredTime: data.expiredTime
+            });
+          }
+        });
+        return cosInstance;
+      });
+    }
+
+    function getFileType(file) {
+      if (file.type.startsWith('image/')) return 'image';
+      if (file.type.startsWith('video/')) return 'video';
+      return 'document';
+    }
+
+    function getCosKey(filename, fileType) {
+      var prefix = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs';
+      return prefix + '/' + filename;
+    }
+
     function uploadFiles(files) {
-      const status = document.getElementById('uploadStatus');
       const progress = document.getElementById('uploadProgress');
       const progressFill = document.getElementById('progressFill');
       const progressText = document.getElementById('progressText');
@@ -275,70 +307,47 @@
           showStatus(file.name + ' 超过 3GB 限制', 'error');
           return;
         }
-        var isImage = file.type.startsWith('image/');
-        var fileType = isImage ? 'image' : file.type.startsWith('video/') ? 'video' : 'document';
+        var fileType = getFileType(file);
+        var ext = file.name.lastIndexOf('.') > -1 ? file.name.substring(file.name.lastIndexOf('.')) : '';
+        var base = file.name.substring(0, file.name.lastIndexOf('.')).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
+        var filename = Date.now() + '_' + base + ext;
+        var cosKey = getCosKey(filename, fileType);
 
-        // 先请求预签名 URL
-        fetch('/cos/presign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ originalName: file.name, type: fileType })
-        }).then(function(r) { return r.json(); }).then(function(data) {
-          if (!data.success) { showStatus(file.name + ': ' + (data.error || '获取上传链接失败'), 'error'); return; }
-          var fileInfo = data.file;
-          // 直传到 COS
-          var xhr = new XMLHttpRequest();
-          xhr.upload.addEventListener('progress', function(e) {
-            if (e.lengthComputable) {
-              var pct = Math.round((e.loaded / e.total) * 100);
+        getCOS().then(function(cos) {
+          progress.style.display = 'block';
+          uploadZone.classList.add('uploading');
+          cos.putObject({
+            Bucket: 'jiaoan-1434685425',
+            Region: 'ap-guangzhou',
+            Key: cosKey,
+            Body: file,
+            onProgress: function(d) {
+              var pct = parseInt(d.percent * 100, 10);
               progressFill.style.width = pct + '%';
               progressText.textContent = file.name + ' - ' + pct + '%';
             }
-          });
-          xhr.addEventListener('loadstart', function() {
-            progress.style.display = 'block';
-            uploadZone.classList.add('uploading');
-          });
-          xhr.addEventListener('load', function() {
-            if (xhr.status === 200) {
-              fileInfo.size = file.size;
-              addFileItem(fileInfo);
-              showStatus(file.name + ' 上传成功', 'success');
-              // 通知服务器记录文件
-              fetch('/cos/uploaded', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ file: fileInfo })
-              }).catch(function() {});
-            } else {
-              // 预签名上传失败，回退到服务器中转
-              fallbackUpload(file);
-            }
-          });
-          xhr.addEventListener('error', function() { fallbackUpload(file); });
-          xhr.addEventListener('loadend', function() {
+          }, function(err, data) {
             progress.style.display = 'none';
             uploadZone.classList.remove('uploading');
+            if (err) {
+              showStatus(file.name + ': 上传失败 (' + (err.error || err.message || err.Code || '未知错误') + ')', 'error');
+              return;
+            }
+            var fileInfo = {
+              filename: filename,
+              originalName: file.name,
+              type: fileType,
+              mimeType: file.type,
+              size: file.size,
+              uploadedAt: new Date().toISOString()
+            };
+            addFileItem(fileInfo);
+            showStatus(file.name + ' 上传成功', 'success');
           });
-          xhr.open('PUT', fileInfo.presignedUrl, true);
-          xhr.send(file);
-        }).catch(function() { fallbackUpload(file); });
+        }).catch(function(e) {
+          showStatus(file.name + ': ' + (e.message || '获取上传凭证失败'), 'error');
+        });
       });
-    }
-
-    function fallbackUpload(file) {
-      showStatus(file.name + ' 正在通过服务器上传...', 'info');
-      var formData = new FormData();
-      formData.append('file', file);
-      var xhr = new XMLHttpRequest();
-      xhr.addEventListener('load', function() {
-        if (xhr.status === 200) {
-          try { var resp = JSON.parse(xhr.responseText); if (resp.success) { addFileItem(resp.file); showStatus(file.name + ' 上传成功', 'success'); } else { showStatus(file.name + ': ' + (resp.error || '上传失败'), 'error'); } } catch(e) { showStatus(file.name + ': 响应解析失败', 'error'); }
-        } else { showStatus(file.name + ': 服务器错误', 'error'); }
-      });
-      xhr.addEventListener('error', function() { showStatus(file.name + ': 网络错误', 'error'); });
-      xhr.open('POST', '/upload', true);
-      xhr.send(formData);
     }
 
     function showStatus(msg, type) {

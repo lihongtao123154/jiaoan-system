@@ -95,27 +95,7 @@ function getPresignedUrl(cosKey) {
   });
 }
 
-// 生成 COS 预签名上传 URL（直接浏览器直传）
-function getPresignedUploadUrl(cosKey) {
-  return new Promise((resolve, reject) => {
-    const crypto = require('crypto');
-    const now = Math.floor(Date.now() / 1000);
-    const start = now - 60;
-    const end = now + 7200; // 2小时有效期
-    const keyTime = start + ';' + end;
-    const signKey = crypto.createHmac('sha1', cosSecretKey).update(keyTime).digest('hex');
-    const httpString = 'put\n/' + cosKey + '\n\nhost=' + cosBucket + '.cos.' + cosRegion + '.myqcloud.com\n';
-    const stringToSign = crypto.createHash('sha1').update(httpString).digest('hex');
-    const signature = crypto.createHmac('sha1', signKey).update(stringToSign).digest('hex');
-    const url = 'https://' + cosBucket + '.cos.' + cosRegion + '.myqcloud.com/' + cosKey +
-      '?q-sign-algorithm=sha1&q-ak=' + cosSecretId +
-      '&q-sign-time=' + keyTime +
-      '&q-key-time=' + keyTime +
-      '&q-header-list=host&q-url-param-list=' +
-      '&q-signature=' + signature;
-    resolve(url);
-  });
-}
+// 移除预签名函数，改由前端 JS SDK 直传
 
 async function enrichPlanFiles(plan) {
   if (!plan || !plan.files) return;
@@ -125,34 +105,31 @@ async function enrichPlanFiles(plan) {
   }
 }
 
-// ==================== COS 预签名上传 ====================
-app.post('/cos/presign', isAuthenticated, (req, res) => {
-  if (!useCOS) {
-    return res.status(400).json({ error: '未配置 COS' });
-  }
-  const { originalName, type } = req.body;
-  if (!originalName) return res.status(400).json({ error: '缺少文件名' });
+// ==================== COS STS 临时凭证 ====================
+const StsClient = require('tencentcloud-sdk-nodejs-sts').sts.v20180813.Client;
+const stsClient = useCOS ? new StsClient({
+  credential: { secretId: cosSecretId, secretKey: cosSecretKey },
+  region: cosRegion
+}) : null;
 
-  const ext = path.extname(originalName);
-  const base = path.basename(originalName, ext).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
-  const filename = Date.now() + '_' + base + ext;
-  let fileType;
-  if (type === 'image' || /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(ext)) fileType = 'image';
-  else if (type === 'video' || /\.(mp4|webm|avi|mov|wmv|flv|mkv)$/i.test(ext)) fileType = 'video';
-  else fileType = 'document';
-
-  const cosKey = (fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs') + '/' + filename;
-  getPresignedUploadUrl(cosKey).then(url => {
-    const fileInfo = {
-      filename,
-      originalName,
-      type: fileType,
-      cosKey,
-      presignedUrl: url,
-      size: 0,
-      uploadedAt: new Date().toISOString()
-    };
-    res.json({ success: true, file: fileInfo });
+app.post('/cos/sts', isAuthenticated, (req, res) => {
+  if (!useCOS) return res.status(400).json({ error: '未配置 COS' });
+  stsClient.GetFederationToken({
+    Name: 'upload',
+    Policy: JSON.stringify({
+      version: '2.0',
+      statement: [{ effect: 'allow', action: ['name/cos:*'], resource: ['*'] }]
+    })
+  }).then(data => {
+    res.json({
+      success: true,
+      tmpSecretId: data.Credentials.TmpSecretId,
+      tmpSecretKey: data.Credentials.TmpSecretKey,
+      securityToken: data.Credentials.Token,
+      expiredTime: data.ExpiredTime,
+      bucket: cosBucket,
+      region: cosRegion
+    });
   }).catch(e => res.status(500).json({ error: e.message }));
 });
 
