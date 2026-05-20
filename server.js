@@ -62,20 +62,6 @@ const useCOS = !!(cosSecretId && cosSecretKey && cosBucket && cosRegion);
 let cosClient;
 if (useCOS) {
   cosClient = new COS({ SecretId: cosSecretId, SecretKey: cosSecretKey });
-  // 配置 CORS 允许浏览器直传
-  cosClient.putBucketCors({
-    Bucket: cosBucket, Region: cosRegion,
-    CORSRules: [{
-      AllowedOrigin: ['*'],
-      AllowedMethod: ['PUT', 'POST', 'GET', 'HEAD'],
-      AllowedHeader: ['*'],
-      ExposeHeader: ['ETag', 'Content-Length'],
-      MaxAgeSeconds: 3600
-    }]
-  }, function(err) {
-    if (err) console.error('[COS] CORS 配置失败:', err.message);
-    else console.log('[COS] CORS 已配置');
-  });
   console.log('[COS] 已启用腾讯云对象存储');
 }
 
@@ -120,20 +106,36 @@ async function enrichPlanFiles(plan) {
   }
 }
 
-// ==================== COS 预签名上传 URL ====================
-app.get('/cos/upload-url', isAuthenticated, (req, res) => {
+// ==================== COS 服务端中转上传 ====================
+const uploadToCOS = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 * 1024 } });
+
+app.post('/cos/upload', isAuthenticated, uploadToCOS.single('file'), async (req, res) => {
   if (!useCOS) return res.status(400).json({ error: '未配置 COS' });
-  const { filename, fileType } = req.query;
-  if (!filename || !fileType) return res.status(400).json({ error: '缺少参数' });
-  const prefix = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs';
-  const cosKey = prefix + '/' + filename;
-  cosClient.getObjectUrl({
-    Bucket: cosBucket, Region: cosRegion, Key: cosKey,
-    Method: 'put', Sign: true, Expires: 7200
-  }, (err, data) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true, url: data.Url, cosKey });
-  });
+  if (!req.file) return res.status(400).json({ error: '未选择文件' });
+  const file = req.file;
+  const ext = file.originalname.lastIndexOf('.') > -1 ? file.originalname.substring(file.originalname.lastIndexOf('.')) : '';
+  const base = file.originalname.substring(0, file.originalname.lastIndexOf('.')).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
+  const filename = Date.now() + '_' + base + ext;
+  const fileType = file.mimetype.startsWith('image/') ? 'image' : file.mimetype.startsWith('video/') ? 'video' : 'document';
+  const cosKey = (fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs') + '/' + filename;
+  try {
+    await new Promise((resolve, reject) => {
+      cosClient.putObject({
+        Bucket: cosBucket, Region: cosRegion, Key: cosKey,
+        Body: file.buffer,
+        ContentLength: file.size,
+        ContentType: file.mimetype
+      }, (err, data) => {
+        if (err) reject(err); else resolve(data);
+      });
+    });
+    res.json({
+      success: true,
+      file: { filename, originalName: file.originalname, type: fileType, mimeType: file.mimetype, size: file.size, uploadedAt: new Date().toISOString() }
+    });
+  } catch (e) {
+    res.status(500).json({ error: '上传失败: ' + (e.message || e) });
+  }
 });
 
 // ==================== 文件上传配置 ====================

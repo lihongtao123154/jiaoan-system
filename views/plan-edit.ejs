@@ -281,60 +281,46 @@
           showStatus(file.name + ' 超过 3GB 限制', 'error');
           return;
         }
-        var fileType = getFileType(file);
-        var ext = file.name.lastIndexOf('.') > -1 ? file.name.substring(file.name.lastIndexOf('.')) : '';
-        var base = file.name.substring(0, file.name.lastIndexOf('.')).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
-        var filename = Date.now() + '_' + base + ext;
+        progress.style.display = 'block';
+        uploadZone.classList.add('uploading');
 
-        // 获取预签名上传 URL
-        fetch('/cos/upload-url?filename=' + encodeURIComponent(filename) + '&fileType=' + fileType, { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.success) throw new Error(data.error || '获取上传地址失败');
-            progress.style.display = 'block';
-            uploadZone.classList.add('uploading');
-            var xhr = new XMLHttpRequest();
-            xhr.open('PUT', data.url, true);
-            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        var formData = new FormData();
+        formData.append('file', file);
 
-            xhr.upload.addEventListener('progress', function(e) {
-              if (e.lengthComputable) {
-                var pct = parseInt(e.loaded / e.total * 100, 10);
-                progressFill.style.width = pct + '%';
-                progressText.textContent = file.name + ' - ' + pct + '%';
-              }
-            });
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cos/upload', true);
 
-            xhr.addEventListener('load', function() {
-              progress.style.display = 'none';
-              uploadZone.classList.remove('uploading');
-              if (xhr.status >= 200 && xhr.status < 300) {
-                var fileInfo = {
-                  filename: filename,
-                  originalName: file.name,
-                  type: fileType,
-                  mimeType: file.type,
-                  size: file.size,
-                  uploadedAt: new Date().toISOString()
-                };
-                addFileItem(fileInfo);
-                showStatus(file.name + ' 上传成功', 'success');
-              } else {
-                showStatus(file.name + ': 上传失败 (' + xhr.status + ')', 'error');
-              }
-            });
+        xhr.upload.addEventListener('progress', function(e) {
+          if (e.lengthComputable) {
+            var pct = parseInt(e.loaded / e.total * 100, 10);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = file.name + ' - ' + pct + '%';
+          }
+        });
 
-            xhr.addEventListener('error', function() {
-              progress.style.display = 'none';
-              uploadZone.classList.remove('uploading');
-              showStatus(file.name + ': 网络错误', 'error');
-            });
+        xhr.addEventListener('load', function() {
+          progress.style.display = 'none';
+          uploadZone.classList.remove('uploading');
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            if (resp.success) {
+              addFileItem(resp.file);
+              showStatus(file.name + ' 上传成功', 'success');
+            } else {
+              showStatus(file.name + ': ' + (resp.error || '上传失败'), 'error');
+            }
+          } catch(e) {
+            showStatus(file.name + ': 上传失败', 'error');
+          }
+        });
 
-            xhr.send(file);
-          })
-          .catch(function(e) {
-            showStatus(file.name + ': ' + (e.message || '获取上传地址失败'), 'error');
-          });
+        xhr.addEventListener('error', function() {
+          progress.style.display = 'none';
+          uploadZone.classList.remove('uploading');
+          showStatus(file.name + ': 网络错误', 'error');
+        });
+
+        xhr.send(formData);
       });
     }
 
