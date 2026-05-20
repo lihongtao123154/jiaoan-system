@@ -125,6 +125,16 @@
         </div>
 
         <div class="form-group">
+          <label>公开分享</label>
+          <label class="switch-label">
+            <input type="checkbox" name="isPublic" value="1"
+              <%= plan && plan.isPublic == 1 ? 'checked' : '' %>>
+            <span class="switch-slider"></span>
+            <span class="switch-text">允许其他用户查看此教案</span>
+          </label>
+        </div>
+
+        <div class="form-group">
           <label>封面图片</label>
           <p class="form-help">上传一张封面图，在首页会显示在教案卡片上</p>
           <div class="cover-upload" id="coverUpload">

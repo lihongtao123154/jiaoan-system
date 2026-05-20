@@ -18,6 +18,8 @@
           <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
           <span><%= user.displayName %></span>
         </span>
+        <a href="/dashboard" class="nav-link <%= pageType === 'private' ? 'nav-link-active' : '' %>">私人空间</a>
+        <a href="/hall" class="nav-link <%= pageType === 'public' ? 'nav-link-active' : '' %>">公共大厅</a>
         <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
         <% if (user.role === 'admin') { %>
           <a href="/courses" class="nav-link">课程管理</a>
@@ -43,9 +45,11 @@
     <% } %>
 
     <div class="page-header">
-      <h2>我的教案</h2>
-      <span class="page-count">共 <%= plans.length %> 个</span>
-      <div style="margin-left:auto"><a href="/plan/new" class="btn btn-primary">+ 新建教案</a></div>
+      <h2><%= pageType === 'public' ? '公共大厅' : '私人空间' %></h2>
+      <span class="page-count">共 <%= plans.length %> 个教案</span>
+      <% if (pageType !== 'public') { %>
+        <div style="margin-left:auto"><a href="/plan/new" class="btn btn-primary">+ 新建教案</a></div>
+      <% } %>
     </div>
 
     <div class="filter-bar">
@@ -70,9 +74,9 @@
 
     <% if (plans.length === 0) { %>
       <div class="empty-state">
-        <div class="empty-state-title">还没有创建教案</div>
-        <div class="empty-state-desc">点击下方按钮创建你的第一个教案</div>
-        <a href="/plan/new" class="btn btn-primary btn-lg">创建第一个教案</a>
+        <div class="empty-state-title"><%= pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案' %></div>
+        <div class="empty-state-desc"><%= pageType === 'public' ? '快去创建第一个公开教案吧！' : '点击下方按钮创建你的第一个教案' %></div>
+        <% if (pageType !== 'public') { %><a href="/plan/new" class="btn btn-primary btn-lg">创建第一个教案</a><% } %>
       </div>
     <% } else { %>
       <% courses.forEach(function(c) {
