@@ -61,6 +61,20 @@ const useCOS = !!(cosSecretId && cosSecretKey && cosBucket && cosRegion);
 let cosClient;
 if (useCOS) {
   cosClient = new COS({ SecretId: cosSecretId, SecretKey: cosSecretKey });
+  // 配置 CORS 允许浏览器直传
+  cosClient.putBucketCors({
+    Bucket: cosBucket, Region: cosRegion,
+    CORSRules: [{
+      AllowedOrigin: ['*'],
+      AllowedMethod: ['PUT', 'POST', 'GET', 'HEAD'],
+      AllowedHeader: ['*'],
+      ExposeHeader: ['ETag', 'Content-Length'],
+      MaxAgeSeconds: 3600
+    }]
+  }, function(err) {
+    if (err) console.error('[COS] CORS 配置失败:', err.message);
+    else console.log('[COS] CORS 已配置');
+  });
   console.log('[COS] 已启用腾讯云对象存储');
 }
 
