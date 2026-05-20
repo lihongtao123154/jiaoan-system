@@ -105,32 +105,20 @@ async function enrichPlanFiles(plan) {
   }
 }
 
-// ==================== COS STS 临时凭证 ====================
-const StsClient = require('tencentcloud-sdk-nodejs-sts').sts.v20180813.Client;
-const stsClient = useCOS ? new StsClient({
-  credential: { secretId: cosSecretId, secretKey: cosSecretKey },
-  region: cosRegion
-}) : null;
-
-app.get('/cos/sts', isAuthenticated, (req, res) => {
+// ==================== COS 预签名上传 URL ====================
+app.get('/cos/upload-url', isAuthenticated, (req, res) => {
   if (!useCOS) return res.status(400).json({ error: '未配置 COS' });
-  stsClient.GetFederationToken({
-    Name: 'upload',
-    Policy: JSON.stringify({
-      version: '2.0',
-      statement: [{ effect: 'allow', action: ['name/cos:*'], resource: ['*'] }]
-    })
-  }).then(data => {
-    res.json({
-      success: true,
-      tmpSecretId: data.Credentials.TmpSecretId,
-      tmpSecretKey: data.Credentials.TmpSecretKey,
-      securityToken: data.Credentials.Token,
-      expiredTime: data.ExpiredTime,
-      bucket: cosBucket,
-      region: cosRegion
-    });
-  }).catch(e => res.status(500).json({ error: e.message }));
+  const { filename, fileType } = req.query;
+  if (!filename || !fileType) return res.status(400).json({ error: '缺少参数' });
+  const prefix = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs';
+  const cosKey = prefix + '/' + filename;
+  cosClient.getObjectUrl({
+    Bucket: cosBucket, Region: cosRegion, Key: cosKey,
+    Method: 'put', Sign: true, Expires: 7200
+  }, (err, data) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, url: data.Url, cosKey });
+  });
 });
 
 // ==================== 文件上传配置 ====================

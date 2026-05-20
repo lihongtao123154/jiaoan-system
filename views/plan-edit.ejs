@@ -6,7 +6,7 @@
   <title><%= plan ? '编辑' : '新建' %>教案 - 教案管理系统</title>
   <link rel="stylesheet" href="/css/style.css">
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js"></script>
+
 </head>
 <body>
   <nav class="navbar">
@@ -265,36 +265,10 @@
       if (this.files.length > 0) { uploadFiles(this.files); this.value = ''; }
     });
 
-    // COS JS SDK 实例（延迟初始化）
-    var cosInstance = null;
-    function getCOS() {
-      if (cosInstance) return Promise.resolve(cosInstance);
-      return fetch('/cos/sts', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(data) {
-        if (!data.success) throw new Error(data.error || '获取凭证失败');
-        cosInstance = new COS({
-          getAuthorization: function(options, callback) {
-            callback({
-              TmpSecretId: data.tmpSecretId,
-              TmpSecretKey: data.tmpSecretKey,
-              SecurityToken: data.securityToken,
-              StartTime: Math.floor(Date.now() / 1000),
-              ExpiredTime: data.expiredTime
-            });
-          }
-        });
-        return cosInstance;
-      });
-    }
-
     function getFileType(file) {
       if (file.type.startsWith('image/')) return 'image';
       if (file.type.startsWith('video/')) return 'video';
       return 'document';
-    }
-
-    function getCosKey(filename, fileType) {
-      var prefix = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'docs';
-      return prefix + '/' + filename;
     }
 
     function uploadFiles(files) {
@@ -311,42 +285,56 @@
         var ext = file.name.lastIndexOf('.') > -1 ? file.name.substring(file.name.lastIndexOf('.')) : '';
         var base = file.name.substring(0, file.name.lastIndexOf('.')).replace(/[\\/:*?"<>|]/g, '_').substring(0, 60);
         var filename = Date.now() + '_' + base + ext;
-        var cosKey = getCosKey(filename, fileType);
 
-        getCOS().then(function(cos) {
-          progress.style.display = 'block';
-          uploadZone.classList.add('uploading');
-          cos.putObject({
-            Bucket: 'jiaoan-1434685425',
-            Region: 'ap-guangzhou',
-            Key: cosKey,
-            Body: file,
-            onProgress: function(d) {
-              var pct = parseInt(d.percent * 100, 10);
-              progressFill.style.width = pct + '%';
-              progressText.textContent = file.name + ' - ' + pct + '%';
-            }
-          }, function(err, data) {
-            progress.style.display = 'none';
-            uploadZone.classList.remove('uploading');
-            if (err) {
-              showStatus(file.name + ': 上传失败 (' + (err.error || err.message || err.Code || '未知错误') + ')', 'error');
-              return;
-            }
-            var fileInfo = {
-              filename: filename,
-              originalName: file.name,
-              type: fileType,
-              mimeType: file.type,
-              size: file.size,
-              uploadedAt: new Date().toISOString()
-            };
-            addFileItem(fileInfo);
-            showStatus(file.name + ' 上传成功', 'success');
+        // 获取预签名上传 URL
+        fetch('/cos/upload-url?filename=' + encodeURIComponent(filename) + '&fileType=' + fileType, { credentials: 'same-origin' })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success) throw new Error(data.error || '获取上传地址失败');
+            progress.style.display = 'block';
+            uploadZone.classList.add('uploading');
+            var xhr = new XMLHttpRequest();
+            xhr.open('PUT', data.url, true);
+            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+            xhr.upload.addEventListener('progress', function(e) {
+              if (e.lengthComputable) {
+                var pct = parseInt(e.loaded / e.total * 100, 10);
+                progressFill.style.width = pct + '%';
+                progressText.textContent = file.name + ' - ' + pct + '%';
+              }
+            });
+
+            xhr.addEventListener('load', function() {
+              progress.style.display = 'none';
+              uploadZone.classList.remove('uploading');
+              if (xhr.status >= 200 && xhr.status < 300) {
+                var fileInfo = {
+                  filename: filename,
+                  originalName: file.name,
+                  type: fileType,
+                  mimeType: file.type,
+                  size: file.size,
+                  uploadedAt: new Date().toISOString()
+                };
+                addFileItem(fileInfo);
+                showStatus(file.name + ' 上传成功', 'success');
+              } else {
+                showStatus(file.name + ': 上传失败 (' + xhr.status + ')', 'error');
+              }
+            });
+
+            xhr.addEventListener('error', function() {
+              progress.style.display = 'none';
+              uploadZone.classList.remove('uploading');
+              showStatus(file.name + ': 网络错误', 'error');
+            });
+
+            xhr.send(file);
+          })
+          .catch(function(e) {
+            showStatus(file.name + ': ' + (e.message || '获取上传地址失败'), 'error');
           });
-        }).catch(function(e) {
-          showStatus(file.name + ': ' + (e.message || '获取上传凭证失败'), 'error');
-        });
       });
     }
 
