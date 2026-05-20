@@ -18,8 +18,13 @@
           <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
           <span><%= user.displayName %></span>
         </span>
-        <a href="/dashboard" class="nav-link">首页</a>
-        <a href="/users" class="nav-link">用户管理</a>
+        <a href="/dashboard" class="nav-link">私人空间</a>
+        <a href="/hall" class="nav-link">公共大厅</a>
+        <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
+        <a href="/courses" class="nav-link">课程管理</a>
+        <% if (user.role === 'admin') { %>
+          <a href="/users" class="nav-link">用户管理</a>
+        <% } %>
         <a href="/logout" class="nav-link nav-link-danger">退出</a>
       </div>
       <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
@@ -75,10 +80,14 @@
                 <td><%= formatDate(c.createdAt) %></td>
                 <td>
                   <div class="action-cell">
-                    <button class="btn btn-sm btn-outline" onclick="editCourse('<%= c.id %>','<%= c.name.replace(/'/g,"\\'") %>','<%= (c.description||'').replace(/'/g,"\\'") %>')">编辑</button>
-                    <form action="/courses/delete/<%= c.id %>" method="POST" style="display:inline" onsubmit="return confirm('删除课程不会删除教案，但教案将不再属于该课程。确定删除？')">
-                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                    </form>
+                    <% if (user.role === 'admin') { %>
+                      <button class="btn btn-sm btn-outline" onclick="editCourse('<%= c.id %>','<%= c.name.replace(/'/g,"\\'") %>','<%= (c.description||'').replace(/'/g,"\\'") %>')">编辑</button>
+                      <form action="/courses/delete/<%= c.id %>" method="POST" style="display:inline" onsubmit="return confirm('删除课程不会删除教案，但教案将不再属于该课程。确定删除？')">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                      </form>
+                    <% } else { %>
+                      <span style="color:var(--text-muted);font-size:13px">仅管理员可编辑</span>
+                    <% } %>
                   </div>
                 </td>
               </tr>

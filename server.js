@@ -733,12 +733,12 @@ app.post('/users/password/:id', isAuthenticated, isAdmin, (req, res) => {
 });
 
 // ==================== 路由: 课程管理 ====================
-app.get('/courses', isAuthenticated, isAdmin, (req, res) => {
+app.get('/courses', isAuthenticated, (req, res) => {
   const courses = getAllCourses();
   res.render('courses', { courses, error: null, success: null });
 });
 
-app.post('/courses/add', isAuthenticated, isAdmin, (req, res) => {
+app.post('/courses/add', isAuthenticated, (req, res) => {
   const { name, description } = req.body;
   if (!name || !name.trim()) {
     const courses = getAllCourses();

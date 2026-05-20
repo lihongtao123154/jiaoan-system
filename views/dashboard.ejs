@@ -21,8 +21,8 @@
         <a href="/dashboard" class="nav-link <%= pageType === 'private' ? 'nav-link-active' : '' %>">私人空间</a>
         <a href="/hall" class="nav-link <%= pageType === 'public' ? 'nav-link-active' : '' %>">公共大厅</a>
         <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
+        <a href="/courses" class="nav-link">课程管理</a>
         <% if (user.role === 'admin') { %>
-          <a href="/courses" class="nav-link">课程管理</a>
           <a href="/users" class="nav-link">用户管理</a>
         <% } %>
         <a href="/logout" class="nav-link nav-link-danger">退出</a>
