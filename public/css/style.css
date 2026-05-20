@@ -627,7 +627,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 .switch-text { font-size: 14px; color: var(--text); font-weight: 500; flex-shrink: 0; }
 .switch-status { font-size: 13px; font-weight: 600; white-space: nowrap; }
 .switch-status::before { content: '关闭'; color: var(--text-muted); }
-.switch-label input:checked ~ .switch-status::before { content: '开启'; color: var(--accent); }
+.switch-label input:checked ~ .switch-row .switch-status::before { content: '开启'; color: var(--accent); }
 
 /* ====== 导航激活状态 ====== */
 .nav-link-active { color: var(--accent) !important; font-weight: 600; }
