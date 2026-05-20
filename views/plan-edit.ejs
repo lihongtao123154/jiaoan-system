@@ -41,122 +41,143 @@
       <% } %>
 
       <form action="<%= plan ? '/plan/' + plan.id : '/plan' %>" method="POST" class="plan-form" id="planForm">
-        <% if (courses && courses.length > 0) { %>
-          <div class="form-row">
-            <div class="form-group" style="flex:1">
-              <label for="courseId">所属课程</label>
-              <select id="courseId" name="courseId" class="form-input">
-                <option value="">不选择</option>
-                <% courses.forEach(function(c) { %>
-                  <option value="<%= c.id %>" <%= plan && plan.courseId === c.id ? 'selected' : '' %>><%= c.name %></option>
-                <% }); %>
-              </select>
-            </div>
-            <div class="form-group" style="flex:1">
-              <label for="sessionName">课时名称</label>
-              <input type="text" id="sessionName" name="sessionName"
-                     value="<%= plan ? plan.sessionName : '' %>"
-                     placeholder="如：第1课时、第2课时" class="form-input">
-            </div>
-          </div>
-        <% } %>
+        <!-- 第一步：基本信息 -->
+        <div class="form-section">
+          <div class="section-label">📝 基本信息</div>
 
-        <% if (allTags && allTags.length > 0) { %>
           <div class="form-group">
-            <label>标签</label>
-            <div class="tag-selector">
-              <% allTags.forEach(function(t) { %>
-                <label class="tag-option">
-                  <input type="checkbox" name="tagIds" value="<%= t.id %>"
-                    <%= planTags && planTags.some(function(pt) { return pt.id === t.id }) ? 'checked' : '' %>>
-                  <span style="background:<%= t.color || '#3498db' %>"><%= t.name %></span>
-                </label>
-              <% }); %>
-            </div>
+            <label for="title">教案标题 <span class="required">*</span></label>
+            <input type="text" id="title" name="title" required
+                   value="<%= plan ? plan.title : '' %>"
+                   placeholder="给你的教案起个名字，如：分数的初步认识" class="form-input form-input-lg">
           </div>
-        <% } %>
 
-        <div class="form-group">
-          <label for="title">教案标题 <span class="required">*</span></label>
-          <input type="text" id="title" name="title" required
-                 value="<%= plan ? plan.title : '' %>"
-                 placeholder="给你的教案起个名字" class="form-input form-input-lg">
+          <div class="form-group">
+            <label>教案内容</label>
+            <p class="form-help">在这里写下教案的详细内容，支持富文本排版</p>
+            <div id="editorContainer" class="form-input" style="height:400px"><%= plan ? plan.content : '' %></div>
+            <input type="hidden" name="content" id="contentInput">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>教案内容</label>
-          <p class="form-help">使用下方编辑器排版，所见即所得</p>
-          <div id="editorContainer" class="form-input" style="height:400px"><%= plan ? plan.content : '' %></div>
-          <input type="hidden" name="content" id="contentInput">
-        </div>
+        <!-- 第二步：课程组织 -->
+        <div class="form-section">
+          <div class="section-label">📂 课程组织</div>
 
-        <div class="form-group">
-          <label>附件资源</label>
-          <p class="form-help">支持图片、视频、PDF、PPT、Word、Excel、压缩包等，单文件最大 3GB</p>
-
-          <div class="upload-zone" id="uploadZone">
-            <div class="upload-zone-label">把文件拖到这里上传</div>
-            <div class="upload-zone-hint">或点击选择文件</div>
-            <input type="file" id="fileInput" multiple accept="*" hidden>
-            <div class="upload-progress" id="uploadProgress" style="display:none">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+          <% if (courses && courses.length > 0) { %>
+            <div class="form-row">
+              <div class="form-group" style="flex:1">
+                <label for="courseId">所属课程</label>
+                <select id="courseId" name="courseId" class="form-input">
+                  <option value="">暂不选择</option>
+                  <% courses.forEach(function(c) { %>
+                    <option value="<%= c.id %>" <%= plan && plan.courseId === c.id ? 'selected' : '' %>><%= c.name %></option>
+                  <% }); %>
+                </select>
               </div>
-              <div class="progress-text" id="progressText">上传中...</div>
+              <div class="form-group" style="flex:1">
+                <label for="sessionName">课时名称</label>
+                <input type="text" id="sessionName" name="sessionName"
+                       value="<%= plan ? plan.sessionName : '' %>"
+                       placeholder="如：第1课时、第2课时" class="form-input">
+              </div>
             </div>
-          </div>
+          <% } %>
 
-          <div class="upload-status" id="uploadStatus"></div>
+          <% if (allTags && allTags.length > 0) { %>
+            <div class="form-group">
+              <label>标签</label>
+              <p class="form-help">选择一个或多个标签，方便在首页按标签筛选</p>
+              <div class="tag-selector">
+                <% allTags.forEach(function(t) { %>
+                  <label class="tag-option">
+                    <input type="checkbox" name="tagIds" value="<%= t.id %>"
+                      <%= planTags && planTags.some(function(pt) { return pt.id === t.id }) ? 'checked' : '' %>>
+                    <span style="background:<%= t.color || '#3498db' %>"><%= t.name %></span>
+                  </label>
+                <% }); %>
+              </div>
+            </div>
+          <% } %>
+        </div>
 
-          <div class="file-list" id="fileList">
-            <% if (plan && plan.files) { %>
-              <% plan.files.forEach(function(file) { %>
-                <div class="file-item" data-filename="<%= file.filename %>" data-type="<%= file.type %>">
-                  <span class="file-item-type"><%= file.type === 'image' ? '图片' : file.type === 'video' ? '视频' : '文档' %></span>
-                  <span class="file-item-name"><%= file.originalName %></span>
-                  <span class="file-item-size"><%= formatFileSize(file.size) %></span>
-                  <button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>
+        <!-- 第三步：附件与封面 -->
+        <div class="form-section">
+          <div class="section-label">🖼️ 附件与封面</div>
+
+          <div class="form-group">
+            <label>附件资源</label>
+            <p class="form-help">支持图片、视频、PDF、PPT、Word、Excel、压缩包等，单文件最大 3GB</p>
+
+            <div class="upload-zone" id="uploadZone">
+              <div class="upload-zone-label">把文件拖到这里上传</div>
+              <div class="upload-zone-hint">或点击选择文件</div>
+              <input type="file" id="fileInput" multiple accept="*" hidden>
+              <div class="upload-progress" id="uploadProgress" style="display:none">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
                 </div>
-              <% }); %>
-            <% } %>
-          </div>
-
-          <input type="hidden" name="fileList" id="fileListInput"
-                 value='<%= plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
-        </div>
-
-        <div class="form-group">
-          <label>公开分享</label>
-          <label class="switch-label">
-            <input type="checkbox" name="isPublic" value="1"
-              <%= plan && plan.isPublic == 1 ? 'checked' : '' %>>
-            <span class="switch-text">允许其他用户查看此教案</span>
-            <span class="switch-row">
-              <span class="switch-slider"></span>
-              <span class="switch-status"></span>
-            </span>
-          </label>
-          <div class="hint" style="margin-top:4px"><span class="hint-icon">i</span> 开启后教案会出现在「公共大厅」供其他用户浏览、收藏和评论</div>
-        </div>
-
-        <div class="form-group">
-          <label>封面图片</label>
-          <p class="form-help">上传一张封面图，在首页会显示在教案卡片上</p>
-          <div class="cover-upload" id="coverUpload">
-            <% if (plan && plan.coverUrl) { %>
-              <img src="<%= plan.coverUrl %>" class="cover-preview" id="coverPreview">
-            <% } else { %>
-              <img src="" class="cover-preview" id="coverPreview" style="display:none">
-            <% } %>
-            <div class="cover-actions">
-              <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('coverInput').click()">选择图片</button>
-              <button type="button" class="btn btn-sm btn-danger" id="removeCoverBtn" style="display:<%= plan && plan.coverUrl ? 'inline-block' : 'none' %>" onclick="removeCover()">移除</button>
+                <div class="progress-text" id="progressText">上传中...</div>
+              </div>
             </div>
-            <input type="file" id="coverInput" accept="image/*" hidden>
-            <input type="hidden" name="coverUrl" id="coverUrlInput" value="<%= plan ? plan.coverUrl : '' %>">
+
+            <div class="upload-status" id="uploadStatus"></div>
+
+            <div class="file-list" id="fileList">
+              <% if (plan && plan.files) { %>
+                <% plan.files.forEach(function(file) { %>
+                  <div class="file-item" data-filename="<%= file.filename %>" data-type="<%= file.type %>">
+                    <span class="file-item-type"><%= file.type === 'image' ? '📷' : file.type === 'video' ? '🎬' : '📄' %></span>
+                    <span class="file-item-name"><%= file.originalName %></span>
+                    <span class="file-item-size"><%= formatFileSize(file.size) %></span>
+                    <button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+
+            <input type="hidden" name="fileList" id="fileListInput"
+                   value='<%= plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
+          </div>
+
+          <div class="form-group">
+            <label>封面图片</label>
+            <p class="form-help">上传一张封面图，在首页会显示在教案卡片上，让教案更醒目</p>
+            <div class="cover-upload" id="coverUpload">
+              <% if (plan && plan.coverUrl) { %>
+                <img src="<%= plan.coverUrl %>" class="cover-preview" id="coverPreview">
+              <% } else { %>
+                <img src="" class="cover-preview" id="coverPreview" style="display:none">
+              <% } %>
+              <div class="cover-actions">
+                <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('coverInput').click()">选择图片</button>
+                <button type="button" class="btn btn-sm btn-danger" id="removeCoverBtn" style="display:<%= plan && plan.coverUrl ? 'inline-block' : 'none' %>" onclick="removeCover()">移除封面</button>
+              </div>
+              <input type="file" id="coverInput" accept="image/*" hidden>
+              <input type="hidden" name="coverUrl" id="coverUrlInput" value="<%= plan ? plan.coverUrl : '' %>">
+            </div>
           </div>
         </div>
 
+        <!-- 第四步：分享设置 -->
+        <div class="form-section">
+          <div class="section-label">🌐 分享设置</div>
+
+          <div class="form-group">
+            <label class="switch-label">
+              <input type="checkbox" name="isPublic" value="1"
+                <%= plan && plan.isPublic == 1 ? 'checked' : '' %>>
+              <span class="switch-text">允许其他用户查看此教案</span>
+              <span class="switch-row">
+                <span class="switch-slider"></span>
+                <span class="switch-status"></span>
+              </span>
+            </label>
+            <div class="hint" style="margin-top:4px"><span class="hint-icon">i</span> 开启后教案会出现在「公共大厅」供其他用户浏览、收藏和评论</div>
+          </div>
+        </div>
+
+        <!-- 提交 -->
         <div class="form-actions">
           <a href="/dashboard" class="btn btn-outline btn-lg">取消</a>
           <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">

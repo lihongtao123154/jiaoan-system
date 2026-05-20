@@ -370,6 +370,9 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
   box-shadow: var(--shadow-sm);
 }
 
+.form-section + .form-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-light); }
+.form-section .section-label { font-size: 15px; font-weight: 600; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--accent-light); color: var(--text); }
+
 .ql-editor { min-height: 360px; font-size: 15px; line-height: 1.8; }
 .ql-toolbar { border-radius: var(--radius) var(--radius) 0 0; }
 .ql-container { border-radius: 0 0 var(--radius) var(--radius); }
