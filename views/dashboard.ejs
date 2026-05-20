@@ -89,7 +89,7 @@
               const imageFiles = plan.files.filter(f => f.type === 'image');
               const videoFiles = plan.files.filter(f => f.type === 'video');
             %>
-              <div class="plan-card">
+              <div class="plan-card" data-tags="<%= (plan.tags || []).map(function(t){return t.id}).join(',') %>">
                 <% if (plan.coverUrl) { %>
                   <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
                 <% } else if (imageFiles.length > 0) { %>
@@ -148,7 +148,6 @@
               const videoFiles = plan.files.filter(f => f.type === 'video');
             %>
               <div class="plan-card" data-tags="<%= (plan.tags || []).map(function(t){return t.id}).join(',') %>">
-                <% if (plan.coverUrl) { %>
                 <% if (plan.coverUrl) { %>
                   <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
                 <% } else if (imageFiles.length > 0) { %>
