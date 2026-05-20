@@ -107,9 +107,9 @@ async function enrichPlanFiles(plan) {
 }
 
 // ==================== COS 服务端中转上传 ====================
-const uploadToCOS = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 * 1024 } });
+const mediaUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 * 1024 } });
 
-app.post('/cos/upload', isAuthenticated, uploadToCOS.single('file'), async (req, res) => {
+app.post('/cos/upload', isAuthenticated, mediaUpload.single('file'), async (req, res) => {
   if (!useCOS) return res.status(400).json({ error: '未配置 COS' });
   if (!req.file) return res.status(400).json({ error: '未选择文件' });
   const file = req.file;
