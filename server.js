@@ -522,13 +522,20 @@ function deleteOldVersions(planId, keep) {
 
 // 统计
 function getPlanStats(userId) {
-  const total = db.prepare('SELECT COUNT(*) as c FROM plans').get().c;
-  const myTotal = db.prepare('SELECT COUNT(*) as c FROM plans WHERE authorId = ?').get(userId).c;
-  const totalViews = db.prepare('SELECT SUM(viewCount) as c FROM plans').get().c || 0;
-  const totalFavs = db.prepare('SELECT SUM(favCount) as c FROM plans').get().c || 0;
-  const totalComments = db.prepare('SELECT COUNT(*) as c FROM comments').get().c;
-  const topPlans = db.prepare('SELECT id, title, viewCount, favCount FROM plans ORDER BY viewCount DESC LIMIT 5').all();
-  return { total, myTotal, totalViews, totalFavs, totalComments, topPlans };
+  const total = db.prepare('SELECT COUNT(*) as c FROM plans WHERE authorId = ?').get(userId).c;
+  const totalViews = db.prepare('SELECT SUM(viewCount) as c FROM plans WHERE authorId = ?').get(userId).c || 0;
+  const totalFavs = db.prepare('SELECT SUM(favCount) as c FROM plans WHERE authorId = ?').get(userId).c || 0;
+  const totalComments = db.prepare('SELECT COUNT(*) as c FROM comments c JOIN plans p ON c.planId = p.id WHERE p.authorId = ?').get(userId).c;
+  const topPlans = db.prepare('SELECT id, title, viewCount, favCount FROM plans WHERE authorId = ? ORDER BY viewCount DESC LIMIT 5').all(userId);
+  return { total, myTotal: total, totalViews, totalFavs, totalComments, topPlans };
+}
+
+function getPublicStats() {
+  const total = db.prepare('SELECT COUNT(*) as c FROM plans WHERE isPublic = 1').get().c;
+  const totalViews = db.prepare('SELECT SUM(viewCount) as c FROM plans WHERE isPublic = 1').get().c || 0;
+  const totalFavs = db.prepare('SELECT SUM(favCount) as c FROM plans WHERE isPublic = 1').get().c || 0;
+  const totalComments = db.prepare('SELECT COUNT(*) as c FROM comments c JOIN plans p ON c.planId = p.id WHERE p.isPublic = 1').get().c;
+  return { total, myTotal: total, totalViews, totalFavs, totalComments };
 }
 
 // 解析计划中的文件字段（从 JSON 字符串转为对象）
@@ -784,7 +791,7 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
       await enrichPlanFiles(plan);
       plan.tags = getPlanTags(plan.id);
     }
-    const stats = getPlanStats(req.session.user.id);
+    const stats = getPublicStats();
     res.render('dashboard', { plans, courses, allTags, stats, pageType: 'public' });
   } catch (e) { next(e); }
 });

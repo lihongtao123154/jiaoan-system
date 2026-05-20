@@ -36,8 +36,7 @@
   <main class="main-content">
     <% if (stats) { %>
       <div class="stats-bar">
-        <div class="stat-item"><span class="stat-num"><%= stats.total %></span><span class="stat-label">教案总数</span></div>
-        <div class="stat-item"><span class="stat-num"><%= stats.myTotal %></span><span class="stat-label">我的教案</span></div>
+        <div class="stat-item"><span class="stat-num"><%= stats.total %></span><span class="stat-label"><%= pageType === 'public' ? '公开教案' : '我的教案' %></span></div>
         <div class="stat-item"><span class="stat-num"><%= stats.totalViews %></span><span class="stat-label">总浏览</span></div>
         <div class="stat-item"><span class="stat-num"><%= stats.totalFavs %></span><span class="stat-label">总收藏</span></div>
         <div class="stat-item"><span class="stat-num"><%= stats.totalComments %></span><span class="stat-label">评论数</span></div>
