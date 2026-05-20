@@ -47,7 +47,28 @@
           <% if (plan.sessionName) { %><span class="detail-course-badge"><%= plan.sessionName %></span><% } %>
           <span><%= plan.author %></span>
           <span><%= formatDate(plan.updatedAt) %></span>
+          <span class="stat-badge">👁 <%= plan.viewCount || 0 %></span>
+          <span class="stat-badge">⭐ <span id="favCount"><%= plan.favCount || 0 %></span></span>
+          <% if (avgRating && avgRating.count > 0) { %>
+            <span class="stat-badge">★ <%= Number(avgRating.avg).toFixed(1) %>(<%= avgRating.count %>)</span>
+          <% } %>
         </div>
+        <% if (tags && tags.length > 0) { %>
+          <div class="detail-tags">
+            <% tags.forEach(function(t) { %>
+              <span class="tag-badge" style="background:<%= t.color || '#3498db' %>"><%= t.name %></span>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="detail-actions-bar">
+        <button class="btn btn-sm <%= favorited ? 'btn-fav-active' : 'btn-outline' %>" onclick="toggleFav()" id="favBtn">
+          <%= favorited ? '✅ 已收藏' : '☆ 收藏' %>
+        </button>
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('comments-section').scrollIntoView({behavior:'smooth'})">💬 评论</button>
+        <button class="btn btn-sm btn-outline" onclick="saveVersion()">📦 保存版本</button>
+        <button class="btn btn-sm btn-outline" onclick="toggleVersions()">📜 历史版本</button>
       </div>
 
       <% if (plan.content) { %>
@@ -126,6 +147,152 @@
     </div>
   </main>
 
+  <div class="plan-detail">
+    <div class="detail-section" id="comments-section">
+      <div class="section-label">评论与评分 (<span id="commentCount"><%= comments ? comments.length : 0 %></span>)</div>
+      <div class="comment-form">
+        <textarea id="commentInput" class="form-input" placeholder="写下你的反馈或评价..." rows="3"></textarea>
+        <div class="comment-form-actions">
+          <div class="rating-stars" id="ratingStars">
+            <% for (var i = 1; i <= 5; i++) { %>
+              <span class="star" data-score="<%= i %>" onclick="setRating(<%= i %>)">☆</span>
+            <% } %>
+            <span class="rating-hint" id="ratingHint">点击评分</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="submitComment()">发表评论</button>
+        </div>
+      </div>
+      <div class="comments-list" id="commentsList">
+        <% if (comments && comments.length > 0) { %>
+          <% comments.forEach(function(c) { %>
+            <div class="comment-item" data-id="<%= c.id %>">
+              <div class="comment-header">
+                <span class="comment-author"><%= c.displayName %></span>
+                <% if (c.rating > 0) { %>
+                  <span class="comment-rating"><%= '★'.repeat(c.rating) %><%= '☆'.repeat(5 - c.rating) %></span>
+                <% } %>
+                <span class="comment-date"><%= formatDate(c.createdAt) %></span>
+                <% if (c.userId === user.id || user.role === 'admin') { %>
+                  <button class="comment-delete" onclick="deleteComment('<%= c.id %>')">&times;</button>
+                <% } %>
+              </div>
+              <div class="comment-content"><%= c.content %></div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <div class="comments-empty">暂无评论，来写第一条吧</div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="detail-section" id="versions-section" style="display:none">
+      <div class="section-label">历史版本</div>
+      <div id="versionsList"></div>
+    </div>
+  </div>
+
   <script src="/js/main.js"></script>
+  <script>
+    var currentRating = 0;
+    function setRating(s) {
+      currentRating = s;
+      document.querySelectorAll('.star').forEach(function(el, i) {
+        el.textContent = i < s ? '★' : '☆';
+      });
+      document.getElementById('ratingHint').textContent = s + '分';
+    }
+
+    function submitComment() {
+      var content = document.getElementById('commentInput').value.trim();
+      if (!content) { alert('请输入评论内容'); return; }
+      fetch('/api/plan/<%= plan.id %>/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content, rating: currentRating })
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) {
+          location.reload();
+        } else { alert(d.error || '发表失败'); }
+      });
+    }
+
+    function deleteComment(id) {
+      if (!confirm('确定删除这条评论？')) return;
+      fetch('/api/plan/<%= plan.id %>/comment/' + id, { method: 'DELETE' })
+        .then(function(r) { return r.json(); }).then(function(d) {
+          if (d.success) location.reload();
+        });
+    }
+
+    function toggleFav() {
+      fetch('/api/plan/<%= plan.id %>/favorite', { method: 'POST' })
+        .then(function(r) { return r.json(); }).then(function(d) {
+          var btn = document.getElementById('favBtn');
+          var count = document.getElementById('favCount');
+          if (d.favorited) {
+            btn.textContent = '✅ 已收藏';
+            btn.className = 'btn btn-sm btn-fav-active';
+            count.textContent = parseInt(count.textContent) + 1;
+          } else {
+            btn.textContent = '☆ 收藏';
+            btn.className = 'btn btn-sm btn-outline';
+            count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+          }
+        });
+    }
+
+    function saveVersion() {
+      if (!confirm('为当前教案保存一个版本快照？')) return;
+      fetch('/api/plan/<%= plan.id %>/version', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: '手动保存' })
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) { alert('版本已保存！'); } else { alert(d.error || '保存失败'); }
+      });
+    }
+
+    function toggleVersions() {
+      var section = document.getElementById('versions-section');
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        loadVersions();
+      } else {
+        section.style.display = 'none';
+      }
+    }
+
+    function loadVersions() {
+      var list = document.getElementById('versionsList');
+      list.innerHTML = '<div class="loading">加载中...</div>';
+      fetch('/api/plan/<%= plan.id %>/versions')
+        .then(function(r) { return r.json(); }).then(function(versions) {
+          if (versions.length === 0) {
+            list.innerHTML = '<div class="comments-empty">暂无历史版本</div>';
+            return;
+          }
+          var html = '';
+          versions.forEach(function(v, i) {
+            html += '<div class="comment-item">' +
+              '<div class="comment-header">' +
+              '<span>v' + (versions.length - i) + '</span>' +
+              '<span>' + v.authorName + '</span>' +
+              '<span>' + formatDate(v.createdAt) + '</span>' +
+              (v.notes ? '<span>' + v.notes + '</span>' : '') +
+              '<button class="btn btn-xs btn-outline" onclick="restoreVersion(\'' + v.id + '\')">恢复</button>' +
+              '</div></div>';
+          });
+          list.innerHTML = html;
+        });
+    }
+
+    function restoreVersion(vid) {
+      if (!confirm('恢复到此版本？当前内容将被替换。')) return;
+      fetch('/api/plan/<%= plan.id %>/restore/' + vid, { method: 'POST' })
+        .then(function(r) { return r.json(); }).then(function(d) {
+          if (d.success) { alert('已恢复！'); location.reload(); }
+        });
+    }
+  </script>
 </body>
 </html>

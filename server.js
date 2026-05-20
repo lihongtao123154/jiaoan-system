@@ -215,11 +215,58 @@ db.exec(`
     description TEXT DEFAULT '',
     createdAt TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS tags (
+    id TEXT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    color TEXT DEFAULT '#3498db',
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS plan_tags (
+    planId TEXT NOT NULL,
+    tagId TEXT NOT NULL,
+    PRIMARY KEY (planId, tagId)
+  );
+
+  CREATE TABLE IF NOT EXISTS favorites (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    planId TEXT NOT NULL,
+    folderId TEXT DEFAULT '',
+    createdAt TEXT NOT NULL,
+    UNIQUE(userId, planId)
+  );
+
+  CREATE TABLE IF NOT EXISTS folders (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    planId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    content TEXT NOT NULL,
+    rating INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS versions (
+    id TEXT PRIMARY KEY,
+    planId TEXT NOT NULL,
+    content TEXT DEFAULT '',
+    files TEXT DEFAULT '[]',
+    notes TEXT DEFAULT '',
+    createdBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
 `);
 
 // 数据库迁移：添加新字段（如果不存在）
 function migrateSchema() {
-  // 检查 plans 表是否有新字段
   const cols = db.prepare("PRAGMA table_info(plans)").all().map(c => c.name);
   if (!cols.includes('courseId')) {
     db.exec("ALTER TABLE plans ADD COLUMN courseId TEXT DEFAULT ''");
@@ -232,6 +279,18 @@ function migrateSchema() {
   if (!cols.includes('coverUrl')) {
     db.exec("ALTER TABLE plans ADD COLUMN coverUrl TEXT DEFAULT ''");
     console.log('[迁移] plans 表增加 coverUrl 字段');
+  }
+  if (!cols.includes('viewCount')) {
+    db.exec("ALTER TABLE plans ADD COLUMN viewCount INTEGER DEFAULT 0");
+    console.log('[迁移] plans 表增加 viewCount 字段');
+  }
+  if (!cols.includes('favCount')) {
+    db.exec("ALTER TABLE plans ADD COLUMN favCount INTEGER DEFAULT 0");
+    console.log('[迁移] plans 表增加 favCount 字段');
+  }
+  if (!cols.includes('commentCount')) {
+    db.exec("ALTER TABLE plans ADD COLUMN commentCount INTEGER DEFAULT 0");
+    console.log('[迁移] plans 表增加 commentCount 字段');
   }
 }
 
@@ -360,6 +419,112 @@ function updateCourse(id, name, description) {
 function deleteCourse(id) {
   db.prepare('DELETE FROM courses WHERE id = ?').run(id);
   db.prepare("UPDATE plans SET courseId = '' WHERE courseId = ?").run(id);
+}
+
+// ==================== 标签 ====================
+function getAllTags() {
+  return db.prepare('SELECT * FROM tags ORDER BY name ASC').all();
+}
+function createTag(name, color) {
+  const id = 'tag_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT OR IGNORE INTO tags (id, name, color, createdAt) VALUES (?, ?, ?, ?)').run(id, name, color || '#3498db', new Date().toISOString());
+  return db.prepare('SELECT * FROM tags WHERE name = ?').get(name);
+}
+function getPlanTags(planId) {
+  return db.prepare('SELECT t.* FROM tags t JOIN plan_tags pt ON t.id = pt.tagId WHERE pt.planId = ?').all(planId);
+}
+function setPlanTags(planId, tagIds) {
+  db.prepare('DELETE FROM plan_tags WHERE planId = ?').run(planId);
+  const ins = db.prepare('INSERT OR IGNORE INTO plan_tags (planId, tagId) VALUES (?, ?)');
+  for (const tid of tagIds) ins.run(planId, tid);
+}
+function deleteTag(id) {
+  db.prepare('DELETE FROM plan_tags WHERE tagId = ?').run(id);
+  db.prepare('DELETE FROM tags WHERE id = ?').run(id);
+}
+
+// ==================== 收藏 ====================
+function toggleFavorite(userId, planId) {
+  const existing = db.prepare('SELECT * FROM favorites WHERE userId = ? AND planId = ?').get(userId, planId);
+  if (existing) {
+    db.prepare('DELETE FROM favorites WHERE id = ?').run(existing.id);
+    db.prepare('UPDATE plans SET favCount = MAX(0, favCount - 1) WHERE id = ?').run(planId);
+    return { favorited: false };
+  }
+  const id = 'fav_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT INTO favorites (id, userId, planId, folderId, createdAt) VALUES (?, ?, ?, ?, ?)').run(id, userId, planId, '', new Date().toISOString());
+  db.prepare('UPDATE plans SET favCount = favCount + 1 WHERE id = ?').run(planId);
+  return { favorited: true };
+}
+function getUserFavorites(userId) {
+  return db.prepare('SELECT p.* FROM plans p JOIN favorites f ON p.id = f.planId WHERE f.userId = ? ORDER BY f.createdAt DESC').all(userId);
+}
+function isFavorited(userId, planId) {
+  return !!db.prepare('SELECT 1 FROM favorites WHERE userId = ? AND planId = ?').get(userId, planId);
+}
+
+// ==================== 收藏夹 ====================
+function getFolders(userId) {
+  return db.prepare('SELECT * FROM folders WHERE userId = ? ORDER BY createdAt ASC').all(userId);
+}
+function createFolder(userId, name) {
+  const id = 'fld_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT INTO folders (id, userId, name, createdAt) VALUES (?, ?, ?, ?)').run(id, userId, name, new Date().toISOString());
+  return id;
+}
+
+// ==================== 评论与评分 ====================
+function getComments(planId) {
+  return db.prepare('SELECT c.*, u.displayName, u.username FROM comments c JOIN users u ON c.userId = u.id WHERE c.planId = ? ORDER BY c.createdAt DESC').all(planId);
+}
+function addComment(planId, userId, content, rating) {
+  const id = 'cmt_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT INTO comments (id, planId, userId, content, rating, createdAt) VALUES (?, ?, ?, ?, ?, ?)').run(id, planId, userId, content, rating || 0, new Date().toISOString());
+  db.prepare('UPDATE plans SET commentCount = (SELECT COUNT(*) FROM comments WHERE planId = ?) WHERE id = ?').run(planId, planId);
+  return id;
+}
+function deleteComment(id) {
+  const c = db.prepare('SELECT planId FROM comments WHERE id = ?').get(id);
+  if (c) {
+    db.prepare('DELETE FROM comments WHERE id = ?').run(id);
+    db.prepare('UPDATE plans SET commentCount = (SELECT COUNT(*) FROM comments WHERE planId = ?) WHERE id = ?').run(c.planId, c.planId);
+  }
+}
+function getAvgRating(planId) {
+  const r = db.prepare('SELECT AVG(rating) as avg, COUNT(*) as count FROM comments WHERE planId = ? AND rating > 0').get(planId);
+  return r;
+}
+
+// ==================== 版本管理 ====================
+function getVersions(planId) {
+  return db.prepare('SELECT v.*, u.displayName as authorName FROM versions v JOIN users u ON v.createdBy = u.id WHERE v.planId = ? ORDER BY v.createdAt DESC').all(planId);
+}
+function createVersion(planId, content, files, notes, userId) {
+  const id = 'ver_' + uuidv4().slice(0, 8);
+  db.prepare('INSERT INTO versions (id, planId, content, files, notes, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)').run(id, planId, content || '', JSON.stringify(files || []), notes || '', userId, new Date().toISOString());
+  return id;
+}
+function getVersion(id) {
+  return db.prepare('SELECT * FROM versions WHERE id = ?').get(id);
+}
+function deleteOldVersions(planId, keep) {
+  const versions = db.prepare('SELECT id FROM versions WHERE planId = ? ORDER BY createdAt DESC').all(planId);
+  if (versions.length > keep) {
+    const toDelete = versions.slice(keep);
+    const del = db.prepare('DELETE FROM versions WHERE id = ?');
+    for (const v of toDelete) del.run(v.id);
+  }
+}
+
+// 统计
+function getPlanStats(userId) {
+  const total = db.prepare('SELECT COUNT(*) as c FROM plans').get().c;
+  const myTotal = db.prepare('SELECT COUNT(*) as c FROM plans WHERE authorId = ?').get(userId).c;
+  const totalViews = db.prepare('SELECT SUM(viewCount) as c FROM plans').get().c || 0;
+  const totalFavs = db.prepare('SELECT SUM(favCount) as c FROM plans').get().c || 0;
+  const totalComments = db.prepare('SELECT COUNT(*) as c FROM comments').get().c;
+  const topPlans = db.prepare('SELECT id, title, viewCount, favCount FROM plans ORDER BY viewCount DESC LIMIT 5').all();
+  return { total, myTotal, totalViews, totalFavs, totalComments, topPlans };
 }
 
 // 解析计划中的文件字段（从 JSON 字符串转为对象）
@@ -558,14 +723,20 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
   try {
     const plans = getAllPlans().map(parsePlanFiles);
     const courses = getAllCourses();
-    for (const plan of plans) await enrichPlanFiles(plan);
-    res.render('dashboard', { plans, courses });
+    const allTags = getAllTags();
+    for (const plan of plans) {
+      await enrichPlanFiles(plan);
+      plan.tags = getPlanTags(plan.id);
+    }
+    const stats = getPlanStats(req.session.user.id);
+    res.render('dashboard', { plans, courses, allTags, stats });
   } catch (e) { next(e); }
 });
 
 app.get('/plan/new', isAuthenticated, (req, res) => {
   const courses = getAllCourses();
-  res.render('plan-edit', { plan: null, error: null, courses });
+  const allTags = getAllTags();
+  res.render('plan-edit', { plan: null, error: null, courses, allTags });
 });
 
 app.post('/plan', isAuthenticated, (req, res) => {
@@ -580,7 +751,11 @@ app.post('/plan', isAuthenticated, (req, res) => {
     try { parsedFiles = JSON.parse(fileList); } catch (e) { /* keep empty */ }
   }
 
-  createPlan(title.trim(), content || '', req.session.user.displayName, req.session.user.id, parsedFiles, courseId, sessionName, coverUrl);
+  const planId = createPlan(title.trim(), content || '', req.session.user.displayName, req.session.user.id, parsedFiles, courseId, sessionName, coverUrl);
+  // 保存标签
+  const tagIds = req.body.tagIds || [];
+  const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
+  if (safeTagIds.length > 0) setPlanTags(planId, safeTagIds.filter(Boolean));
   res.redirect('/dashboard');
 });
 
@@ -590,9 +765,17 @@ app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
     if (!plan) {
       return res.status(404).send('教案不存在');
     }
+    // 累加浏览次数
+    db.prepare('UPDATE plans SET viewCount = viewCount + 1 WHERE id = ?').run(req.params.id);
+    plan.viewCount = (plan.viewCount || 0) + 1;
     await enrichPlanFiles(plan);
     const course = plan.courseId ? getCourseById(plan.courseId) : null;
-    res.render('plan-view', { plan, course });
+    const tags = getPlanTags(req.params.id);
+    const comments = getComments(req.params.id);
+    const avgRating = getAvgRating(req.params.id);
+    const favorited = isFavorited(req.session.user.id, req.params.id);
+    const versions = getVersions(req.params.id);
+    res.render('plan-view', { plan, course, tags, comments, avgRating, favorited, versions });
   } catch (e) { next(e); }
 });
 
@@ -602,7 +785,9 @@ app.get('/plan/:id/edit', isAuthenticated, (req, res) => {
     return res.status(404).send('教案不存在');
   }
   const courses = getAllCourses();
-  res.render('plan-edit', { plan, error: null, courses });
+  const allTags = getAllTags();
+  const planTags = getPlanTags(req.params.id);
+  res.render('plan-edit', { plan, error: null, courses, allTags, planTags });
 });
 
 app.post('/plan/:id', isAuthenticated, (req, res) => {
@@ -624,6 +809,10 @@ app.post('/plan/:id', isAuthenticated, (req, res) => {
   }
 
   updatePlan(req.params.id, title.trim(), content || '', parsedFiles, courseId, sessionName, coverUrl);
+  // 保存标签
+  const tagIds = req.body.tagIds || [];
+  const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
+  setPlanTags(req.params.id, safeTagIds.filter(Boolean));
   res.redirect('/dashboard');
 });
 
@@ -725,6 +914,95 @@ app.post('/upload/delete', isAuthenticated, (req, res) => {
     deleteFromCOS(cosKey).catch(() => {});
   }
 
+  res.json({ success: true });
+});
+
+// ==================== API: 统计 ====================
+app.get('/api/stats', isAuthenticated, (req, res) => {
+  const stats = getPlanStats(req.session.user.id);
+  res.json(stats);
+});
+
+// ==================== API: 标签 ====================
+app.get('/api/tags', isAuthenticated, (req, res) => {
+  res.json(getAllTags());
+});
+
+app.post('/api/tags', isAuthenticated, isAdmin, (req, res) => {
+  const { name, color } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: '请输入标签名称' });
+  const tag = createTag(name.trim(), color);
+  res.json(tag);
+});
+
+app.post('/api/plan/:id/tags', isAuthenticated, (req, res) => {
+  setPlanTags(req.params.id, req.body.tagIds || []);
+  res.json({ success: true });
+});
+
+app.delete('/api/tags/:id', isAuthenticated, isAdmin, (req, res) => {
+  deleteTag(req.params.id);
+  res.json({ success: true });
+});
+
+// ==================== API: 收藏 ====================
+app.post('/api/plan/:id/favorite', isAuthenticated, (req, res) => {
+  const result = toggleFavorite(req.session.user.id, req.params.id);
+  res.json(result);
+});
+
+app.get('/api/favorites', isAuthenticated, (req, res) => {
+  const plans = getUserFavorites(req.session.user.id).map(parsePlanFiles);
+  res.json(plans);
+});
+
+// ==================== API: 评论 ====================
+app.post('/api/plan/:id/comment', isAuthenticated, (req, res) => {
+  const { content, rating } = req.body;
+  if (!content || !content.trim()) return res.status(400).json({ error: '请输入评论内容' });
+  addComment(req.params.id, req.session.user.id, content.trim(), parseInt(rating) || 0);
+  const comments = getComments(req.params.id);
+  const avgRating = getAvgRating(req.params.id);
+  res.json({ success: true, comments, avgRating });
+});
+
+app.delete('/api/plan/:id/comment/:commentId', isAuthenticated, (req, res) => {
+  const c = db.prepare('SELECT * FROM comments WHERE id = ?').get(req.params.commentId);
+  if (!c) return res.status(404).json({ error: '评论不存在' });
+  if (c.userId !== req.session.user.id && req.session.user.role !== 'admin') {
+    return res.status(403).json({ error: '无权限' });
+  }
+  deleteComment(req.params.commentId);
+  res.json({ success: true });
+});
+
+// ==================== API: 版本管理 ====================
+app.post('/api/plan/:id/version', isAuthenticated, (req, res) => {
+  const { notes } = req.body;
+  const plan = getPlanById(req.params.id);
+  if (!plan) return res.status(404).json({ error: '教案不存在' });
+  createVersion(req.params.id, plan.content, JSON.parse(plan.files || '[]'), notes || '', req.session.user.id);
+  deleteOldVersions(req.params.id, 20);
+  res.json({ success: true, versions: getVersions(req.params.id) });
+});
+
+app.get('/api/plan/:id/versions', isAuthenticated, (req, res) => {
+  res.json(getVersions(req.params.id));
+});
+
+app.get('/api/plan/:id/versions/:vid', isAuthenticated, (req, res) => {
+  const v = getVersion(req.params.vid);
+  if (!v) return res.status(404).json({ error: '版本不存在' });
+  if (v.planId !== req.params.id) return res.status(400).json({ error: '版本不匹配' });
+  res.json(v);
+});
+
+app.post('/api/plan/:id/restore/:vid', isAuthenticated, (req, res) => {
+  const v = getVersion(req.params.vid);
+  if (!v) return res.status(404).json({ error: '版本不存在' });
+  if (v.planId !== req.params.id) return res.status(400).json({ error: '版本不匹配' });
+  db.prepare('UPDATE plans SET content = ?, files = ?, updatedAt = ? WHERE id = ?')
+    .run(v.content, v.files, new Date().toISOString(), req.params.id);
   res.json({ success: true });
 });
 
