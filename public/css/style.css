@@ -624,7 +624,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 .switch-label input:checked ~ .switch-slider { background: #1a1612; }
 .switch-label input:checked ~ .switch-slider::after { transform: translateX(22px); background: #fff; }
 .switch-text { font-size: 14px; color: var(--text); font-weight: 500; }
-.switch-status { font-size: 12px; font-weight: 600; min-width: 40px; }
+.switch-status { font-size: 12px; font-weight: 600; min-width: 40px; margin-left: 4px; white-space: nowrap; }
 .switch-status::before { content: '关闭'; color: var(--text-muted); }
 .switch-label input:checked ~ .switch-status::before { content: '开启'; color: var(--accent); }
 
