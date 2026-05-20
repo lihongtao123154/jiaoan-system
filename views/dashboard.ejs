@@ -143,7 +143,7 @@
             <span class="course-section-count"><%= uncategorized.length %> 个教案</span>
           </div>
           <div class="plan-grid">
-            <% coursePlans.forEach(function(plan) {
+            <% uncategorized.forEach(function(plan) {
               const imageFiles = plan.files.filter(f => f.type === 'image');
               const videoFiles = plan.files.filter(f => f.type === 'video');
             %>
