@@ -624,7 +624,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  const { username, password, displayName } = req.body;
+  const { username, password } = req.body;
   if (!username || !password) {
     return res.render('register', { error: '用户名和密码不能为空' });
   }
@@ -638,7 +638,7 @@ app.post('/register', (req, res) => {
     return res.render('register', { error: '用户名已存在' });
   }
 
-  createUser(username, password, displayName || username);
+  createUser(username, password, username);
 
   const user = getUserByUsername(username);
   req.session.user = {
