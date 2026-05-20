@@ -38,6 +38,7 @@
       <h2>课程管理</h2>
       <span class="page-count"><%= courses.length %> 门课程</span>
     </div>
+    <div class="hint"><span class="hint-icon">i</span> 创建课程后，新建教案时即可选择所属课程，方便按课程分类筛选</div>
 
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>

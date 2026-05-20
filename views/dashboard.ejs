@@ -50,6 +50,13 @@
         <div style="margin-left:auto"><a href="/plan/new" class="btn btn-primary">+ 新建教案</a></div>
       <% } %>
     </div>
+    <% if (pageType === 'public') { %>
+      <div class="hint"><span class="hint-icon">i</span> 浏览其他老师分享的公开教案，可以收藏和评论哦</div>
+    <% } else if (plans.length > 0) { %>
+      <div class="hint"><span class="hint-icon">i</span> 点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
+    <% } else { %>
+      <div class="hint"><span class="hint-icon">i</span> 点击上方按钮创建你的第一个教案，编辑时可选择课程、添加标签和附件</div>
+    <% } %>
 
     <div class="filter-bar">
       <% if (courses.length > 0) { %>
