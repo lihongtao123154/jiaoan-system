@@ -16,9 +16,9 @@
   --text-muted: #a8a09a;
   --text-placeholder: #c5bdb6;
 
-  --accent: #4a6cf7;
-  --accent-hover: #3b5de7;
-  --accent-light: #eef1ff;
+  --accent: #7c5cf7;
+  --accent-hover: #6b4ce6;
+  --accent-light: #f0edff;
 
   --success: #16a34a;
   --success-light: #f0fdf4;
@@ -35,7 +35,7 @@
   --shadow-md: 0 4px 16px rgba(42, 39, 36, 0.08);
   --shadow-lg: 0 8px 32px rgba(42, 39, 36, 0.1);
 
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", sans-serif;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
 
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,14 +85,14 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.35; color: var(--text); }
 .btn-lg { padding: 11px 24px; font-size: 15px; border-radius: 10px; }
 
 .btn-primary {
-  background: var(--accent); color: #fff;
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(74, 108, 247, 0.25);
+  background: #1a1612; color: #fff;
+  border-color: #1a1612;
+  box-shadow: 0 2px 8px rgba(26, 22, 18, 0.2);
 }
 .btn-primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+  background: #2a2724;
+  border-color: #2a2724;
+  box-shadow: 0 4px 14px rgba(26, 22, 18, 0.25);
   transform: translateY(-1px);
 }
 
@@ -154,8 +154,9 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.35; color: var(--text); }
 }
 .form-input::placeholder { color: var(--text-placeholder); }
 .form-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.12);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+  background: #faf8f6;
 }
 
 .form-input-lg { padding: 12px 16px; font-size: 16px; border-radius: 10px; }
@@ -185,10 +186,10 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 .nav-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .nav-brand-logo {
   width: 30px; height: 30px;
-  background: linear-gradient(135deg, #4a6cf7, #6d8ff7);
+  background: linear-gradient(135deg, #7c5cf7, #a78bfa);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(74, 108, 247, 0.25);
+  box-shadow: 0 2px 6px rgba(124, 92, 247, 0.25);
 }
 .nav-brand-logo::after {
   content: '';
@@ -214,7 +215,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--accent-light); color: var(--accent);
   font-weight: 600; font-size: 14px;
-  box-shadow: 0 1px 3px rgba(74, 108, 247, 0.15);
+  box-shadow: 0 1px 3px rgba(124, 92, 247, 0.15);
 }
 .nav-link { font-size: 14px; color: var(--text-secondary); padding: 6px 12px; border-radius: var(--radius); transition: all var(--transition); }
 .nav-link:hover { background: var(--border-light); color: var(--text); }
@@ -389,7 +390,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 .upload-zone:hover, .upload-zone.drag-over {
   border-color: var(--accent);
   background: var(--accent-light);
-  box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.08);
+  box-shadow: 0 0 0 4px rgba(124, 92, 247, 0.08);
 }
 .upload-zone.uploading { pointer-events: none; opacity: 0.5; }
 
@@ -398,7 +399,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 
 .upload-progress { margin-top: 16px; text-align: center; }
 .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #6d8ff7); width: 0%; border-radius: 2px; transition: width 0.3s ease; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa); width: 0%; border-radius: 2px; transition: width 0.3s ease; }
 .progress-text { font-size: 13px; color: var(--text-secondary); }
 
 .upload-status { margin-top: 12px; }
@@ -566,7 +567,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 /* ====== 数据看板统计条 ====== */
 .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .stat-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; text-align: center; flex: 1; min-width: 80px; }
-.stat-num { display: block; font-size: 24px; font-weight: 700; color: var(--accent); }
+.stat-num { display: block; font-size: 24px; font-weight: 700; color: #7c5cf7; }
 .stat-label { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 /* ====== 标签 ====== */
@@ -630,7 +631,7 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 .switch-text { font-size: 14px; color: var(--text); font-weight: 500; flex-shrink: 0; }
 .switch-status { font-size: 13px; font-weight: 600; white-space: nowrap; }
 .switch-status::before { content: '关闭'; color: var(--text-muted); }
-.switch-label input:checked ~ .switch-row .switch-status::before { content: '开启'; color: var(--accent); }
+.switch-label input:checked ~ .switch-row .switch-status::before { content: '开启'; color: #7c5cf7; }
 
 /* ====== 导航激活状态 ====== */
 .nav-link-active { color: var(--accent) !important; font-weight: 600; }
