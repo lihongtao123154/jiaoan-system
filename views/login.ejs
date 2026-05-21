@@ -307,10 +307,10 @@
 
         <form action="/login" method="POST" id="loginForm" autocomplete="off">
           <div class="form-group">
-            <label for="email">Email</label>
+            <label for="username">Username</label>
             <div class="input-wrap">
-              <input type="email" id="email" name="username" required
-                     placeholder="Enter your email" autofocus>
+              <input type="text" id="username" name="username" required
+                     placeholder="Enter your username" autofocus>
             </div>
           </div>
           <div class="form-group">
@@ -357,7 +357,7 @@
         { el: document.getElementById('char3'), bubble: document.getElementById('bubble3'), name: 'black' },
         { el: document.getElementById('char4'), bubble: document.getElementById('bubble4'), name: 'yellow' }
       ];
-      var emailInput = document.getElementById('email');
+      var usernameInput = document.getElementById('username');
       var pwInput = document.getElementById('password');
       var pwToggle = document.getElementById('pwToggle');
       var loginForm = document.getElementById('loginForm');
@@ -464,21 +464,21 @@
       });
 
       // ====== 输入框焦点交互 ======
-      emailInput.addEventListener('focus', function() {
+      usernameInput.addEventListener('focus', function() {
         setCurious();
         // 所有人看向 email 输入框
-        var rect = emailInput.getBoundingClientRect();
+        var rect = usernameInput.getBoundingClientRect();
         mouseX = rect.left + rect.width / 2;
         mouseY = rect.top + rect.height / 2;
         updateEyes();
         if (chars[3].bubble) {
-          chars[3].bubble.textContent = '邮箱是必备的哦';
+          chars[3].bubble.textContent = '用户名是必备的哦';
           chars[3].bubble.classList.add('show');
           setTimeout(function() { if (chars[3].bubble) chars[3].bubble.classList.remove('show'); }, 2000);
         }
       });
 
-      emailInput.addEventListener('blur', function() {
+      usernameInput.addEventListener('blur', function() {
         if (document.activeElement !== pwInput) {
           setTimeout(function() {
             clearCharStates();
@@ -501,7 +501,7 @@
       });
 
       pwInput.addEventListener('blur', function() {
-        if (document.activeElement !== emailInput) {
+        if (document.activeElement !== usernameInput) {
           setTimeout(function() {
             clearCharStates();
             updateEyes();
