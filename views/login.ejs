@@ -4,39 +4,583 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 - 教案管理系统</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh; display: flex;
+      background: #f5f3f0;
+    }
+    .login-wrap { display: flex; width: 100%; min-height: 100vh; }
+    /* ====== 左侧角色区 ====== */
+    .characters-side {
+      flex: 1.3; display: flex; align-items: center; justify-content: center;
+      background: #faf8f6; position: relative; overflow: hidden;
+      padding: 40px;
+    }
+    .characters-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      max-width: 480px; width: 100%;
+    }
+    .char-cell {
+      display: flex; align-items: center; justify-content: center;
+      height: 200px; position: relative;
+    }
+    /* ====== 角色通用 ====== */
+    .char { position: relative; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .char-face { position: relative; display: flex; align-items: center; justify-content: center; }
+    .char-eyes { display: flex; gap: 12px; position: absolute; }
+    .eye {
+      width: 22px; height: 22px; background: #fff; border-radius: 50%;
+      position: relative; flex-shrink: 0;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .pupil {
+      width: 8px; height: 8px; background: #2a2724; border-radius: 50%;
+      position: absolute; top: 50%; left: 50%;
+      margin-left: -4px; margin-top: -4px;
+      transition: transform 0.08s ease-out;
+    }
+    .mouth {
+      position: absolute; bottom: 12px; left: 50%;
+      transform: translateX(-50%);
+      width: 20px; height: 8px; border-bottom: 3px solid #2a2724;
+      border-radius: 0 0 10px 10px; transition: all 0.3s ease;
+    }
+    /* ====== 角色1: 橙色半圆 ====== */
+    .char-orange { z-index: 2; }
+    .char-orange .char-face {
+      width: 130px; height: 75px; background: #f59e0b;
+      border-radius: 130px 130px 0 0; overflow: hidden;
+      position: relative;
+    }
+    .char-orange .char-eyes { top: 22px; }
+    .char-orange .mouth { bottom: 10px; }
+    /* ====== 角色2: 紫色矩形 ====== */
+    .char-purple { z-index: 2; }
+    .char-purple .char-face {
+      width: 110px; height: 100px; background: #8b5cf6;
+      border-radius: 12px; position: relative;
+    }
+    .char-purple .char-eyes { top: 24px; }
+    .char-purple .mouth { bottom: 16px; }
+    /* ====== 角色3: 黑色竖矩形 ====== */
+    .char-black { z-index: 2; }
+    .char-black .char-face {
+      width: 70px; height: 120px; background: #1c1b1a;
+      border-radius: 8px; position: relative;
+    }
+    .char-black .char-eyes { top: 28px; gap: 10px; }
+    .char-black .eye { width: 18px; height: 18px; }
+    .char-black .pupil { width: 7px; height: 7px; margin-left: -3.5px; margin-top: -3.5px; }
+    .char-black .mouth { border-bottom-color: rgba(255,255,255,0.6); }
+    /* ====== 角色4: 黄色圆角矩形 ====== */
+    .char-yellow { z-index: 2; }
+    .char-yellow .char-face {
+      width: 120px; height: 90px; background: #facc15;
+      border-radius: 24px; position: relative;
+    }
+    .char-yellow .char-eyes { top: 26px; }
+    .char-yellow .mouth { width: 18px; height: 6px; border-bottom: 2.5px solid #2a2724; border-radius: 0; }
+    /* ====== 表情状态 ====== */
+    .char.happy .mouth { height: 12px; border-radius: 0 0 14px 14px; }
+    .char-orange.happy .mouth { height: 14px; }
+    .char-purple.happy .mouth { width: 24px; height: 12px; }
+    .char-black.happy .mouth { width: 14px; height: 10px; border-bottom-color: rgba(255,255,255,0.8); }
+    .char-yellow.happy .mouth { border-radius: 0 0 10px 10px; height: 8px; }
+
+    .char.sad .mouth { border-bottom: none; border-top: 3px solid #2a2724; border-radius: 10px 10px 0 0; height: 8px; transform: translateX(-50%) scaleX(0.8); }
+    .char-black.sad .mouth { border-top-color: rgba(255,255,255,0.6); }
+    .char.surprised .mouth { width: 12px; height: 12px; border: 2px solid #2a2724; border-radius: 50%; background: transparent; border-bottom-width: 2px; }
+    .char-black.surprised .mouth { border-color: rgba(255,255,255,0.6); }
+    .char.eyes-closed .eye { overflow: hidden; }
+    .char.eyes-closed .eye::after {
+      content: ''; position: absolute; top: 50%; left: 2px; right: 2px;
+      height: 2px; background: #2a2724; margin-top: -1px; border-radius: 1px;
+    }
+    .char.eyes-closed .pupil { opacity: 0; }
+    .char.eyes-closed.black .eye::after { background: rgba(255,255,255,0.6); }
+    .char.curious { transform: scale(1.05) translateY(-4px); }
+    .char.curious .mouth { transform: translateX(-50%) scaleX(1.1); }
+    .char.shake { animation: shake 0.5s ease; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-2deg); } 40% { transform: translateX(6px) rotate(2deg); } 60% { transform: translateX(-4px) rotate(-1deg); } 80% { transform: translateX(4px) rotate(1deg); } }
+    .char.bounce { animation: bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes bounce { 0% { transform: translateY(0); } 30% { transform: translateY(-20px); } 50% { transform: translateY(-24px); } 100% { transform: translateY(0); } }
+    .char.look-down { transform: rotate(3deg) translateY(2px); }
+    .char.look-down .char-eyes { transform: translateY(3px); }
+
+    /* ====== 右侧表单区 ====== */
+    .form-side {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #fff; padding: 40px;
+    }
+    .form-card {
+      width: 100%; max-width: 400px;
+    }
+    .form-card h1 {
+      font-size: 30px; font-weight: 700; color: #1a1612;
+      margin-bottom: 6px; letter-spacing: -0.5px;
+    }
+    .form-card .subtitle {
+      font-size: 15px; color: #8a8580; margin-bottom: 36px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 600; color: #3a3530;
+      margin-bottom: 6px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap input {
+      width: 100%; padding: 12px 14px; font-size: 14px;
+      border: 1.5px solid #e6e0d8; border-radius: 10px;
+      outline: none; font-family: inherit;
+      background: #faf8f6; color: #1a1612;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .input-wrap input:focus {
+      border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,0.1);
+      background: #fff;
+    }
+    .input-wrap input::placeholder { color: #b8b0a8; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 18px;
+      color: #8a8580; padding: 4px; line-height: 1; border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: #3a3530; }
+
+    .form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .remember-wrap { display: flex; align-items: center; gap: 6px; }
+    .remember-wrap input[type="checkbox"] {
+      width: 16px; height: 16px; accent-color: #8b5cf6; cursor: pointer;
+    }
+    .remember-wrap label { font-size: 13px; color: #5a5550; cursor: pointer; }
+    .forgot-link { font-size: 13px; color: #8b5cf6; font-weight: 500; text-decoration: none; }
+    .forgot-link:hover { color: #7c3aed; }
+
+    .btn-login {
+      width: 100%; padding: 12px; border: none; border-radius: 10px;
+      background: #1a1612; color: #fff; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-login:hover { background: #2a2724; }
+    .btn-login:active { transform: scale(0.98); }
+    .btn-login:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e6e0d8; }
+    .divider span { font-size: 13px; color: #8a8580; }
+
+    .btn-google {
+      width: 100%; padding: 11px; border: 1.5px solid #e6e0d8; border-radius: 10px;
+      background: #fff; color: #3a3530; font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-google:hover { background: #faf8f6; border-color: #d0c8c0; }
+
+    .signup-text {
+      text-align: center; margin-top: 24px;
+      font-size: 14px; color: #5a5550;
+    }
+    .signup-text a { color: #8b5cf6; font-weight: 600; text-decoration: none; }
+    .signup-text a:hover { color: #7c3aed; }
+
+    .error-msg {
+      background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+      padding: 10px 14px; border-radius: 8px; font-size: 13px;
+      margin-bottom: 20px; display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* ====== 对话气泡 ====== */
+    .speech-bubble {
+      position: absolute; background: #fff; border: 1.5px solid #e6e0d8;
+      border-radius: 14px; padding: 8px 14px; font-size: 13px;
+      color: #3a3530; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+      z-index: 10;
+    }
+    .speech-bubble.show { opacity: 1; }
+    .speech-bubble::after {
+      content: ''; position: absolute; bottom: -7px; left: 50%;
+      margin-left: -6px;
+      width: 12px; height: 12px; background: #fff;
+      border-right: 1.5px solid #e6e0d8; border-bottom: 1.5px solid #e6e0d8;
+      transform: rotate(45deg); clip-path: polygon(0 100%, 100% 0, 100% 100%);
+    }
+
+    @media (max-width: 800px) {
+      .login-wrap { flex-direction: column; }
+      .characters-side { padding: 20px; min-height: 300px; }
+      .characters-grid { gap: 16px; max-width: 360px; }
+      .char-cell { height: 130px; }
+      .char-orange .char-face { width: 90px; height: 55px; }
+      .char-purple .char-face { width: 80px; height: 70px; }
+      .char-black .char-face { width: 54px; height: 85px; }
+      .char-yellow .char-face { width: 85px; height: 65px; }
+      .eye { width: 16px; height: 16px; }
+      .pupil { width: 6px; height: 6px; margin-left: -3px; margin-top: -3px; }
+      .form-side { padding: 24px; }
+    }
+  </style>
 </head>
-<body class="login-page">
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <div class="login-header-title">教案管理系统</div>
-        <div class="login-header-sub">欢迎回来，请登录你的账号</div>
+<body>
+  <div class="login-wrap">
+    <!-- 左侧角色区 -->
+    <div class="characters-side" id="charactersSide">
+      <div class="characters-grid">
+        <!-- 角色1: 橙色半圆 -->
+        <div class="char-cell">
+          <div class="char char-orange" id="char1">
+            <div class="speech-bubble" id="bubble1">嗨！欢迎回来~</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+        </div>
+        <!-- 角色2: 紫色矩形 -->
+        <div class="char-cell">
+          <div class="char char-purple" id="char2">
+            <div class="speech-bubble" id="bubble2">哼，等你很久了</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+        </div>
+        <!-- 角色3: 黑色竖矩形 -->
+        <div class="char-cell">
+          <div class="char char-black" id="char3">
+            <div class="speech-bubble" id="bubble3">......</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+        </div>
+        <!-- 角色4: 黄色圆角矩形 -->
+        <div class="char-cell">
+          <div class="char char-yellow" id="char4">
+            <div class="speech-bubble" id="bubble4">请填写信息吧</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
+    <!-- 右侧表单区 -->
+    <div class="form-side">
+      <div class="form-card">
+        <h1>Welcome back!</h1>
+        <p class="subtitle">Please enter your details</p>
 
-      <form action="/login" method="POST" class="login-form" autocomplete="off">
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input type="text" id="username" name="username" required
-                 placeholder="输入用户名" autofocus class="form-input form-input-lg">
-        </div>
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input type="password" id="password" name="password" required
-                 placeholder="输入密码" class="form-input form-input-lg">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">登 录</button>
-      </form>
+        <% if (error) { %>
+          <div class="error-msg show" id="errorMsg"><%= error %></div>
+        <% } else { %>
+          <div class="error-msg" id="errorMsg"></div>
+        <% } %>
 
-      <div class="login-footer" style="justify-content:space-between">
-        <span class="login-footer-version">教案管理系统 v1.0</span>
-        <a href="/register" style="font-weight:600">创建账号</a>
+        <form action="/login" method="POST" id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrap">
+              <input type="email" id="email" name="username" required
+                     placeholder="Enter your email" autofocus>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="password" name="password" required
+                     placeholder="Enter your password">
+              <button type="button" class="pw-toggle" id="pwToggle" tabindex="-1">&#128065;</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="remember-wrap">
+              <input type="checkbox" id="remember">
+              <label for="remember">Remember me</label>
+            </div>
+            <a href="#" class="forgot-link">Forgot password</a>
+          </div>
+          <button type="submit" class="btn-login" id="loginBtn">Log in</button>
+        </form>
+
+        <div class="divider"><span>or</span></div>
+
+        <button class="btn-google" onclick="alert('Google login demo')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+
+        <p class="signup-text">Don't have an account? <a href="/register">Sign up</a></p>
       </div>
     </div>
   </div>
+
+  <script>
+    (function() {
+      // ====== DOM 引用 ======
+      var chars = [
+        { el: document.getElementById('char1'), bubble: document.getElementById('bubble1'), name: 'orange' },
+        { el: document.getElementById('char2'), bubble: document.getElementById('bubble2'), name: 'purple' },
+        { el: document.getElementById('char3'), bubble: document.getElementById('bubble3'), name: 'black' },
+        { el: document.getElementById('char4'), bubble: document.getElementById('bubble4'), name: 'yellow' }
+      ];
+      var emailInput = document.getElementById('email');
+      var pwInput = document.getElementById('password');
+      var pwToggle = document.getElementById('pwToggle');
+      var loginForm = document.getElementById('loginForm');
+      var loginBtn = document.getElementById('loginBtn');
+      var errorMsg = document.getElementById('errorMsg');
+      var charSide = document.getElementById('charactersSide');
+
+      // 清除所有角色状态
+      function clearCharStates() {
+        chars.forEach(function(c) {
+          c.el.className = 'char char-' + c.name;
+          if (c.bubble) c.bubble.classList.remove('show');
+        });
+      }
+
+      // 设置表情
+      function setExpression(type) {
+        clearCharStates();
+        var msgs = {
+          happy: ['太好啦！', '哼，还不错', '......', '恭喜你'],
+          sad: ['啊，错了...', '搞什么嘛', '......', '再试试吧'],
+          surprised: ['哇！', '哎？！', '！', '嗯？'],
+          normal: ['嗨！欢迎回来~', '哼，等你很久了', '......', '请填写信息吧']
+        };
+        var ms = msgs[type] || msgs.normal;
+        chars.forEach(function(c, i) {
+          if (type === 'happy') c.el.classList.add('happy');
+          else if (type === 'sad') c.el.classList.add('sad');
+          else if (type === 'surprised') c.el.classList.add('surprised');
+          if (c.bubble) {
+            c.bubble.textContent = ms[i];
+            c.bubble.classList.add('show');
+            setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 2000);
+          }
+        });
+      }
+
+      function setCurious() {
+        clearCharStates();
+        chars.forEach(function(c) {
+          c.el.classList.add('curious');
+        });
+      }
+
+      function setLookAtPw() {
+        clearCharStates();
+        chars.forEach(function(c) {
+          c.el.classList.add('look-down');
+        });
+      }
+
+      // 密码可见切换 → 角色反应
+      var pwVisible = false;
+      pwToggle.addEventListener('click', function() {
+        pwVisible = !pwVisible;
+        pwInput.type = pwVisible ? 'text' : 'password';
+        pwToggle.innerHTML = pwVisible ? '&#128064;' : '&#128065;';
+
+        clearCharStates();
+        // 橙色偷看，其他闭眼
+        chars[0].el.classList.add('happy'); // 橙色开心偷看
+        chars[0].el.classList.add('surprised');
+        for (var i = 1; i < chars.length; i++) {
+          chars[i].el.classList.add('eyes-closed');
+          if (chars[i].name === 'black') chars[i].el.classList.add('black');
+        }
+        if (chars[0].bubble) {
+          chars[0].bubble.textContent = '我不看我不看...咦？';
+          chars[0].bubble.classList.add('show');
+          setTimeout(function() {
+            if (chars[0].bubble) chars[0].bubble.classList.remove('show');
+          }, 2000);
+        }
+      });
+
+      // ====== 眼睛跟随鼠标 ======
+      var mouseX = window.innerWidth / 2;
+      var mouseY = window.innerHeight / 2;
+
+      function updateEyes() {
+        chars.forEach(function(c) {
+          var face = c.el.querySelector('.char-face');
+          if (!face) return;
+          var rect = face.getBoundingClientRect();
+          var cx = rect.left + rect.width / 2;
+          var cy = rect.top + rect.height / 2;
+          var dx = mouseX - cx;
+          var dy = mouseY - cy;
+          var angle = Math.atan2(dy, dx);
+          var dist = Math.min(4, Math.sqrt(dx*dx + dy*dy) / 30);
+          var px = Math.cos(angle) * dist;
+          var py = Math.sin(angle) * dist;
+          var pupils = c.el.querySelectorAll('.pupil');
+          for (var i = 0; i < pupils.length; i++) {
+            pupils[i].style.transform = 'translate(' + px + 'px, ' + py + 'px)';
+          }
+        });
+      }
+
+      document.addEventListener('mousemove', function(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        updateEyes();
+      });
+
+      // ====== 输入框焦点交互 ======
+      emailInput.addEventListener('focus', function() {
+        setCurious();
+        // 所有人看向 email 输入框
+        var rect = emailInput.getBoundingClientRect();
+        mouseX = rect.left + rect.width / 2;
+        mouseY = rect.top + rect.height / 2;
+        updateEyes();
+        if (chars[3].bubble) {
+          chars[3].bubble.textContent = '邮箱是必备的哦';
+          chars[3].bubble.classList.add('show');
+          setTimeout(function() { if (chars[3].bubble) chars[3].bubble.classList.remove('show'); }, 2000);
+        }
+      });
+
+      emailInput.addEventListener('blur', function() {
+        if (document.activeElement !== pwInput) {
+          setTimeout(function() {
+            clearCharStates();
+            updateEyes();
+          }, 300);
+        }
+      });
+
+      pwInput.addEventListener('focus', function() {
+        setLookAtPw();
+        var rect = pwInput.getBoundingClientRect();
+        mouseX = rect.left + rect.width / 2;
+        mouseY = rect.top + rect.height / 2;
+        updateEyes();
+        if (chars[1].bubble) {
+          chars[1].bubble.textContent = '密码我可不会偷看！';
+          chars[1].bubble.classList.add('show');
+          setTimeout(function() { if (chars[1].bubble) chars[1].bubble.classList.remove('show'); }, 2000);
+        }
+      });
+
+      pwInput.addEventListener('blur', function() {
+        if (document.activeElement !== emailInput) {
+          setTimeout(function() {
+            clearCharStates();
+            updateEyes();
+          }, 300);
+        }
+      });
+
+      // ====== 登录提交 ======
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+
+        var formData = new FormData(loginForm);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/login', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Log in';
+
+            if (xhr.status === 200) {
+              // 检查返回的是否是重定向（登录成功）
+              if (xhr.responseURL && xhr.responseURL.indexOf('/dashboard') > -1) {
+                // 成功 - 直接跳转
+                window.location.href = '/dashboard';
+              } else if (xhr.responseText.indexOf('error') > -1) {
+                // 失败
+                setExpression('sad');
+                chars.forEach(function(c) {
+                  c.el.classList.add('shake');
+                  setTimeout(function() { c.el.classList.remove('shake'); }, 600);
+                });
+                errorMsg.textContent = '用户名或密码错误';
+                errorMsg.classList.add('show');
+                if (chars[2].bubble) {
+                  chars[2].bubble.textContent = '再检查一下吧...';
+                  chars[2].bubble.classList.add('show');
+                  setTimeout(function() { if (chars[2].bubble) chars[2].bubble.classList.remove('show'); }, 2000);
+                }
+              } else {
+                // 成功
+                setExpression('happy');
+                chars.forEach(function(c) {
+                  c.el.classList.add('bounce');
+                  setTimeout(function() { c.el.classList.remove('bounce'); }, 600);
+                });
+                setTimeout(function() { window.location.href = '/dashboard'; }, 800);
+              }
+            } else {
+              // HTTP 错误码
+              setExpression('sad');
+              errorMsg.textContent = '登录失败，请重试';
+              errorMsg.classList.add('show');
+            }
+          }
+        };
+        xhr.send(new URLSearchParams(formData).toString());
+      });
+
+      // 初始化：设默认表情
+      setTimeout(function() {
+        clearCharStates();
+        // 随机眨眨眼
+        setInterval(function() {
+          chars.forEach(function(c) {
+            if (Math.random() > 0.7) {
+              c.el.classList.add('eyes-closed');
+              if (c.name === 'black') c.el.classList.add('black');
+              setTimeout(function() {
+                c.el.classList.remove('eyes-closed');
+                if (c.name === 'black') c.el.classList.remove('black');
+              }, 150);
+            }
+          });
+        }, 3000);
+      }, 500);
+    })();
+  </script>
 </body>
 </html>
