@@ -20,115 +20,90 @@
       background: #faf8f6; position: relative; overflow: hidden;
       padding: 40px;
     }
-    .char-cluster {
-      position: relative; width: 360px; height: 360px;
+    .characters-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      max-width: 480px; width: 100%;
+    }
+    .char-cell {
+      display: flex; align-items: center; justify-content: center;
+      height: 200px; position: relative;
     }
     /* ====== 角色通用 ====== */
-    .char {
-      position: absolute; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+    .char { position: relative; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .char-face { position: relative; display: flex; align-items: center; justify-content: center; }
-    .char-eyes { display: flex; gap: 14px; position: absolute; }
+    .char-eyes { display: flex; gap: 12px; position: absolute; }
     .eye {
-      width: 26px; height: 26px; background: #fff; border-radius: 50%;
+      width: 22px; height: 22px; background: #fff; border-radius: 50%;
       position: relative; flex-shrink: 0;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
-      border: 2px solid rgba(0,0,0,0.06);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
     }
     .pupil {
-      width: 10px; height: 10px; background: #2a2724; border-radius: 50%;
+      width: 8px; height: 8px; background: #2a2724; border-radius: 50%;
       position: absolute; top: 50%; left: 50%;
-      margin-left: -5px; margin-top: -5px;
+      margin-left: -4px; margin-top: -4px;
       transition: transform 0.08s ease-out;
     }
-    .pupil-shine {
-      width: 4px; height: 4px; background: #fff; border-radius: 50%;
-      position: absolute; top: 2px; right: 2px;
-    }
-    .blush {
-      position: absolute; width: 16px; height: 10px;
-      background: rgba(255,100,100,0.25); border-radius: 50%;
-      bottom: 30px; opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .blush-l { left: 8px; }
-    .blush-r { right: 8px; }
-    .char.happy .blush { opacity: 1; }
     .mouth {
-      position: absolute; left: 50%;
+      position: absolute; bottom: 12px; left: 50%;
       transform: translateX(-50%);
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      width: 20px; height: 8px; border-bottom: 3px solid #2a2724;
+      border-radius: 0 0 10px 10px; transition: all 0.3s ease;
     }
-
     /* ====== 角色1: 橙色半圆 ====== */
-    .char1 { top: 20px; left: 80px; z-index: 3; }
-    .char1 .char-face {
-      width: 140px; height: 80px; background: #f59e0b;
-      border-radius: 140px 140px 0 0; position: relative;
+    .char-orange { z-index: 2; }
+    .char-orange .char-face {
+      width: 130px; height: 75px; background: #f59e0b;
+      border-radius: 130px 130px 0 0; overflow: hidden;
+      position: relative;
     }
-    .char1 .char-eyes { top: 22px; gap: 18px; }
-    .char1 .eye { width: 28px; height: 28px; }
-    .char1 .pupil { width: 11px; height: 11px; margin-left: -5.5px; margin-top: -5.5px; }
-    .char1 .blush { bottom: 26px; }
-    .char1 .mouth { bottom: 8px; width: 24px; height: 10px; border-bottom: 3.5px solid #2a2724; border-radius: 0 0 14px 14px; }
-    .char1.happy .mouth { height: 16px; }
-    .char1.sad .mouth { border-bottom: none; border-top: 3.5px solid #2a2724; border-radius: 10px 10px 0 0; height: 8px; }
-    .char1.surprised .mouth { width: 14px; height: 14px; border: 2.5px solid #2a2724; border-radius: 50%; border-bottom-width: 2.5px; }
-
+    .char-orange .char-eyes { top: 22px; }
+    .char-orange .mouth { bottom: 10px; }
     /* ====== 角色2: 紫色矩形 ====== */
-    .char2 { top: 40px; right: 50px; z-index: 2; }
-    .char2 .char-face {
-      width: 120px; height: 110px; background: #8b5cf6;
-      border-radius: 16px; position: relative;
-    }
-    .char2 .char-eyes { top: 26px; gap: 16px; }
-    .char2 .eye { width: 26px; height: 26px; }
-    .char2 .blush { bottom: 34px; }
-    .char2 .mouth { bottom: 16px; width: 22px; height: 9px; border-bottom: 3px solid #2a2724; border-radius: 0 0 12px 12px; }
-    .char2.happy .mouth { width: 28px; height: 14px; }
-    .char2.sad .mouth { border-bottom: none; border-top: 3px solid #2a2724; border-radius: 10px 10px 0 0; height: 8px; width: 18px; }
-    .char2.surprised .mouth { width: 13px; height: 13px; border: 2.5px solid #2a2724; border-radius: 50%; }
-
-    /* ====== 角色3: 黑色竖矩形 ====== */
-    .char3 { bottom: 30px; left: 40px; z-index: 1; }
-    .char3 .char-face {
-      width: 80px; height: 130px; background: #1c1b1a;
+    .char-purple { z-index: 2; }
+    .char-purple .char-face {
+      width: 110px; height: 100px; background: #8b5cf6;
       border-radius: 12px; position: relative;
     }
-    .char3 .char-eyes { top: 30px; gap: 12px; }
-    .char3 .eye { width: 20px; height: 20px; border-color: rgba(255,255,255,0.1); }
-    .char3 .pupil { width: 8px; height: 8px; margin-left: -4px; margin-top: -4px; background: #fff; }
-    .char3 .pupil-shine { display: none; }
-    .char3 .blush { display: none; }
-    .char3 .mouth { bottom: 20px; width: 18px; height: 7px; border-bottom: 2.5px solid rgba(255,255,255,0.5); border-radius: 0 0 10px 10px; }
-    .char3.happy .mouth { height: 10px; border-bottom-color: rgba(255,255,255,0.7); }
-    .char3.sad .mouth { border-bottom: none; border-top: 2.5px solid rgba(255,255,255,0.5); border-radius: 8px 8px 0 0; height: 7px; }
-    .char3.surprised .mouth { width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
-
-    /* ====== 角色4: 黄色圆角矩形 ====== */
-    .char4 { bottom: 50px; right: 80px; z-index: 2; }
-    .char4 .char-face {
-      width: 130px; height: 100px; background: #facc15;
-      border-radius: 30px; position: relative;
+    .char-purple .char-eyes { top: 24px; }
+    .char-purple .mouth { bottom: 16px; }
+    /* ====== 角色3: 黑色竖矩形 ====== */
+    .char-black { z-index: 2; }
+    .char-black .char-face {
+      width: 70px; height: 120px; background: #1c1b1a;
+      border-radius: 8px; position: relative;
     }
-    .char4 .char-eyes { top: 26px; gap: 16px; }
-    .char4 .eye { width: 24px; height: 24px; }
-    .char4 .blush { bottom: 32px; }
-    .char4 .mouth { bottom: 18px; width: 20px; height: 7px; border-bottom: 2.5px solid #2a2724; border-radius: 0; }
-    .char4.happy .mouth { border-radius: 0 0 12px 12px; height: 10px; width: 24px; }
-    .char4.sad .mouth { border-bottom: none; border-top: 2.5px solid #2a2724; border-radius: 8px 8px 0 0; height: 7px; width: 16px; }
-    .char4.surprised .mouth { width: 12px; height: 12px; border: 2.5px solid #2a2724; border-radius: 50%; }
-
+    .char-black .char-eyes { top: 28px; gap: 10px; }
+    .char-black .eye { width: 18px; height: 18px; }
+    .char-black .pupil { width: 7px; height: 7px; margin-left: -3.5px; margin-top: -3.5px; }
+    .char-black .mouth { border-bottom-color: rgba(255,255,255,0.6); }
+    /* ====== 角色4: 黄色圆角矩形 ====== */
+    .char-yellow { z-index: 2; }
+    .char-yellow .char-face {
+      width: 120px; height: 90px; background: #facc15;
+      border-radius: 24px; position: relative;
+    }
+    .char-yellow .char-eyes { top: 26px; }
+    .char-yellow .mouth { width: 18px; height: 6px; border-bottom: 2.5px solid #2a2724; border-radius: 0; }
     /* ====== 表情状态 ====== */
+    .char.happy .mouth { height: 12px; border-radius: 0 0 14px 14px; }
+    .char-orange.happy .mouth { height: 14px; }
+    .char-purple.happy .mouth { width: 24px; height: 12px; }
+    .char-black.happy .mouth { width: 14px; height: 10px; border-bottom-color: rgba(255,255,255,0.8); }
+    .char-yellow.happy .mouth { border-radius: 0 0 10px 10px; height: 8px; }
+
+    .char.sad .mouth { border-bottom: none; border-top: 3px solid #2a2724; border-radius: 10px 10px 0 0; height: 8px; transform: translateX(-50%) scaleX(0.8); }
+    .char-black.sad .mouth { border-top-color: rgba(255,255,255,0.6); }
+    .char.surprised .mouth { width: 12px; height: 12px; border: 2px solid #2a2724; border-radius: 50%; background: transparent; border-bottom-width: 2px; }
+    .char-black.surprised .mouth { border-color: rgba(255,255,255,0.6); }
     .char.eyes-closed .eye { overflow: hidden; }
     .char.eyes-closed .eye::after {
-      content: ''; position: absolute; top: 50%; left: 3px; right: 3px;
-      height: 2.5px; background: #2a2724; margin-top: -1.5px; border-radius: 2px;
+      content: ''; position: absolute; top: 50%; left: 2px; right: 2px;
+      height: 2px; background: #2a2724; margin-top: -1px; border-radius: 1px;
     }
     .char.eyes-closed .pupil { opacity: 0; }
-    .char3.eyes-closed .eye::after { background: rgba(255,255,255,0.6); }
-    .char.curious { transform: scale(1.06) translateY(-3px); }
-    .char.lean-in { transform: scale(1.04) translateX(4px); }
+    .char.eyes-closed.black .eye::after { background: rgba(255,255,255,0.6); }
+    .char.curious { transform: scale(1.05) translateY(-4px); }
+    .char.curious .mouth { transform: translateX(-50%) scaleX(1.1); }
     .char.shake { animation: shake 0.5s ease; }
     @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-2deg); } 40% { transform: translateX(6px) rotate(2deg); } 60% { transform: translateX(-4px) rotate(-1deg); } 80% { transform: translateX(4px) rotate(1deg); } }
     .char.bounce { animation: bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -262,55 +237,57 @@
   <div class="login-wrap">
     <!-- 左侧角色区 -->
     <div class="characters-side" id="charactersSide">
-      <div class="char-cluster">
+      <div class="characters-grid">
         <!-- 角色1: 橙色半圆 -->
-        <div class="char char1" id="char1">
-          <div class="speech-bubble" id="bubble1" style="top:-40px;left:50%;transform:translateX(-50%)">嗨！欢迎回来~</div>
-          <div class="char-face">
-            <div class="char-eyes">
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
+        <div class="char-cell">
+          <div class="char char-orange" id="char1">
+            <div class="speech-bubble" id="bubble1">嗨！欢迎回来~</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
             </div>
-            <div class="blush blush-l"></div>
-            <div class="blush blush-r"></div>
-            <div class="mouth"></div>
           </div>
         </div>
         <!-- 角色2: 紫色矩形 -->
-        <div class="char char2" id="char2">
-          <div class="speech-bubble" id="bubble2" style="top:-30px;left:50%;transform:translateX(-50%)">哼，等你很久了</div>
-          <div class="char-face">
-            <div class="char-eyes">
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
+        <div class="char-cell">
+          <div class="char char-purple" id="char2">
+            <div class="speech-bubble" id="bubble2">哼，等你很久了</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
             </div>
-            <div class="blush blush-l"></div>
-            <div class="blush blush-r"></div>
-            <div class="mouth"></div>
           </div>
         </div>
         <!-- 角色3: 黑色竖矩形 -->
-        <div class="char char3" id="char3">
-          <div class="speech-bubble" id="bubble3" style="top:-30px;left:50%;transform:translateX(-50%)">......</div>
-          <div class="char-face">
-            <div class="char-eyes">
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
+        <div class="char-cell">
+          <div class="char char-black" id="char3">
+            <div class="speech-bubble" id="bubble3">......</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
             </div>
-            <div class="mouth"></div>
           </div>
         </div>
         <!-- 角色4: 黄色圆角矩形 -->
-        <div class="char char4" id="char4">
-          <div class="speech-bubble" id="bubble4" style="top:-30px;left:50%;transform:translateX(-50%)">请填写信息吧</div>
-          <div class="char-face">
-            <div class="char-eyes">
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
-              <div class="eye"><div class="pupil"><div class="pupil-shine"></div></div></div>
+        <div class="char-cell">
+          <div class="char char-yellow" id="char4">
+            <div class="speech-bubble" id="bubble4">请填写信息吧</div>
+            <div class="char-face">
+              <div class="char-eyes">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+              </div>
+              <div class="mouth"></div>
             </div>
-            <div class="blush blush-l"></div>
-            <div class="blush blush-r"></div>
-            <div class="mouth"></div>
           </div>
         </div>
       </div>
@@ -375,10 +352,10 @@
     (function() {
       // ====== DOM 引用 ======
       var chars = [
-        { el: document.getElementById('char1'), bubble: document.getElementById('bubble1'), cls: 'char1' },
-        { el: document.getElementById('char2'), bubble: document.getElementById('bubble2'), cls: 'char2' },
-        { el: document.getElementById('char3'), bubble: document.getElementById('bubble3'), cls: 'char3' },
-        { el: document.getElementById('char4'), bubble: document.getElementById('bubble4'), cls: 'char4' }
+        { el: document.getElementById('char1'), bubble: document.getElementById('bubble1'), name: 'orange' },
+        { el: document.getElementById('char2'), bubble: document.getElementById('bubble2'), name: 'purple' },
+        { el: document.getElementById('char3'), bubble: document.getElementById('bubble3'), name: 'black' },
+        { el: document.getElementById('char4'), bubble: document.getElementById('bubble4'), name: 'yellow' }
       ];
       var emailInput = document.getElementById('email');
       var pwInput = document.getElementById('password');
@@ -391,7 +368,7 @@
       // 清除所有角色状态
       function clearCharStates() {
         chars.forEach(function(c) {
-          c.el.className = 'char ' + c.cls;
+          c.el.className = 'char char-' + c.name;
           if (c.bubble) c.bubble.classList.remove('show');
         });
       }
@@ -445,6 +422,7 @@
         chars[0].el.classList.add('surprised');
         for (var i = 1; i < chars.length; i++) {
           chars[i].el.classList.add('eyes-closed');
+          if (chars[i].name === 'black') chars[i].el.classList.add('black');
         }
         if (chars[0].bubble) {
           chars[0].bubble.textContent = '我不看我不看...咦？';
@@ -593,8 +571,10 @@
           chars.forEach(function(c) {
             if (Math.random() > 0.7) {
               c.el.classList.add('eyes-closed');
+              if (c.name === 'black') c.el.classList.add('black');
               setTimeout(function() {
                 c.el.classList.remove('eyes-closed');
+                if (c.name === 'black') c.el.classList.remove('black');
               }, 150);
             }
           });
