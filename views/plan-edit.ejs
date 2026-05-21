@@ -334,7 +334,7 @@
         formData.append('file', file);
 
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/cos/upload', true);
+        xhr.open('POST', <%= useCOS ? "'/cos/upload'" : "'/upload'" %>, true);
 
         xhr.upload.addEventListener('progress', function(e) {
           if (e.lengthComputable) {

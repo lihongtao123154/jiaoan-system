@@ -799,7 +799,7 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
 app.get('/plan/new', isAuthenticated, (req, res) => {
   const courses = getAllCourses();
   const allTags = getAllTags();
-  res.render('plan-edit', { plan: null, error: null, courses, allTags });
+  res.render('plan-edit', { plan: null, error: null, courses, allTags, useCOS });
 });
 
 app.post('/plan', isAuthenticated, (req, res) => {
@@ -850,7 +850,7 @@ app.get('/plan/:id/edit', isAuthenticated, (req, res) => {
   const courses = getAllCourses();
   const allTags = getAllTags();
   const planTags = getPlanTags(req.params.id);
-  res.render('plan-edit', { plan, error: null, courses, allTags, planTags });
+  res.render('plan-edit', { plan, error: null, courses, allTags, planTags, useCOS });
 });
 
 app.post('/plan/:id', isAuthenticated, (req, res) => {
