@@ -129,10 +129,9 @@ app.post('/cos/upload', isAuthenticated, mediaUpload.single('file'), async (req,
         if (err) reject(err); else resolve(data);
       });
     });
-    res.json({
-      success: true,
-      file: { filename, originalName: file.originalname, type: fileType, mimeType: file.mimetype, size: file.size, uploadedAt: new Date().toISOString() }
-    });
+    const fileInfo = { filename, originalName: file.originalname, type: fileType, mimeType: file.mimetype, size: file.size, uploadedAt: new Date().toISOString() };
+    fileInfo.url = await getPresignedUrl(cosKey);
+    res.json({ success: true, file: fileInfo });
   } catch (e) {
     res.status(500).json({ error: '上传失败: ' + (e.message || e) });
   }
@@ -949,6 +948,7 @@ app.post('/upload', isAuthenticated, (req, res) => {
         const cosKey = getCOSKey(fileInfo);
         await uploadToCOS(req.file.path, cosKey);
         fs.unlinkSync(req.file.path);
+        fileInfo.url = await getPresignedUrl(cosKey);
       } catch (e) {
         return res.status(500).json({ error: '上传到云存储失败: ' + e.message });
       }

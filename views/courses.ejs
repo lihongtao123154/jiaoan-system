@@ -82,7 +82,7 @@
                 <td>
                   <div class="action-cell">
                     <% if (user.role === 'admin') { %>
-                      <button class="btn btn-sm btn-outline" onclick="editCourse('<%= c.id %>','<%= c.name.replace(/'/g,"\\'") %>','<%= (c.description||'').replace(/'/g,"\\'") %>')">编辑</button>
+                      <button class="btn btn-sm btn-outline" onclick="editCourse('<%= c.id %>','<%- c.name.replace(/'/g,"\\'") %>','<%- (c.description||'').replace(/'/g,"\\'") %>')">编辑</button>
                       <form action="/courses/delete/<%= c.id %>" method="POST" style="display:inline" onsubmit="return confirm('删除课程不会删除教案，但教案将不再属于该课程。确定删除？')">
                         <button type="submit" class="btn btn-sm btn-danger">删除</button>
                       </form>
