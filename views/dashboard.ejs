@@ -264,8 +264,8 @@
       <div class="gm-hint">点击上方按钮创建你的第一个教案，编辑时可选择课程、添加标签和附件</div>
     <% } %>
 
-    <!-- Stats -->
-    <% if (stats) { %>
+    <!-- Stats (仅管理员可见) -->
+    <% if (stats && user.role === 'admin') { %>
       <div class="gm-stats">
         <div class="gm-stat-card"><div class="num"><%= stats.total %></div><div class="label"><%= pageType === 'public' ? '公开教案' : '我的教案' %></div></div>
         <div class="gm-stat-card"><div class="num"><%= stats.totalViews %></div><div class="label">总浏览</div></div>
