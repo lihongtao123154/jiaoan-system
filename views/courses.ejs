@@ -64,6 +64,28 @@
     .gm-btn-danger:hover { background: #fce8e6; }
 
     .gm-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    /* Category Cards */
+    .gm-category-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px;
+    }
+    .gm-category-card {
+      background: var(--gm-surface); border: 1px solid var(--gm-border); border-radius: var(--gm-radius);
+      padding: 32px 24px; text-align: center; cursor: pointer; text-decoration: none; color: inherit;
+      transition: var(--gm-transition); position: relative; overflow: hidden;
+    }
+    .gm-category-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: var(--gm-primary); transform: translateY(-2px);
+    }
+    .gm-category-card .icon { font-size: 48px; margin-bottom: 16px; }
+    .gm-category-card .name { font-size: 18px; font-weight: 600; color: var(--gm-text); }
+    .gm-category-card .desc { font-size: 13px; color: var(--gm-text-secondary); margin-top: 8px; line-height: 1.5; }
+    .gm-category-card .sub-count {
+      display: inline-block; margin-top: 12px; padding: 4px 14px;
+      background: var(--gm-primary-light); color: var(--gm-primary); border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+    }
+
     .gm-page-header {
       display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
     }
@@ -93,25 +115,6 @@
       background: rgba(0,0,0,0.05); padding: 1px 7px; border-radius: 8px; color: var(--gm-text-muted);
     }
     .gm-tab.active .cnt { background: rgba(26,115,232,0.1); color: var(--gm-primary); }
-
-    .gm-chips {
-      display: flex; flex-wrap: wrap; gap: 8px; padding: 16px;
-      background: var(--gm-surface); border: 1px solid var(--gm-border);
-      border-top: none; border-radius: 0 0 var(--gm-radius-sm) var(--gm-radius-sm);
-      margin-bottom: 20px; position: relative;
-    }
-    .gm-chip {
-      padding: 7px 16px; border: 1px solid var(--gm-border); border-radius: 20px;
-      background: var(--gm-surface); font-size: 13px; font-weight: 500; font-family: inherit;
-      color: var(--gm-text-secondary); cursor: pointer; transition: var(--gm-transition);
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .gm-chip:hover { border-color: var(--gm-primary); color: var(--gm-primary); background: var(--gm-primary-light); }
-    .gm-chip.active { background: var(--gm-primary); color: #fff; border-color: var(--gm-primary); }
-    .gm-chip .cnt {
-      font-size: 11px; background: rgba(0,0,0,0.07); padding: 0 7px; border-radius: 10px; line-height: 18px;
-    }
-    .gm-chip.active .cnt { background: rgba(255,255,255,0.25); }
 
     .gm-lesson-list { background: var(--gm-surface); border-radius: var(--gm-radius-sm); border: 1px solid var(--gm-border); overflow: hidden; }
     .gm-lesson-item {
@@ -165,28 +168,20 @@
       font-size: 14px; font-family: inherit; transition: var(--gm-transition); outline: none;
     }
     .gm-input:focus { border-color: var(--gm-primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
-    .gm-select {
-      padding: 10px 14px; border: 1px solid var(--gm-border); border-radius: 8px;
-      font-size: 14px; font-family: inherit; background: var(--gm-surface); outline: none; cursor: pointer;
-    }
-    .gm-select:focus { border-color: var(--gm-primary); }
+    .gm-input-sm { width: 180px; }
 
-    .gm-sport-group { margin-bottom: 20px; }
-    .gm-sport-group-title {
-      font-size: 15px; font-weight: 600; padding: 8px 0; margin-bottom: 8px;
-      border-bottom: 1px solid #f1f3f4; color: var(--gm-text);
+    .gm-sub-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px;
     }
-    .gm-sport-item {
-      display: inline-flex; align-items: center; gap: 6px;
-      margin: 4px; padding: 6px 12px; background: #f1f3f4; border-radius: 16px;
-      font-size: 13px;
+    .gm-sub-item .name { font-weight: 500; }
+    .gm-sub-item .actions { display: flex; gap: 6px; }
+    .gm-sub-item .actions button {
+      padding: 4px 12px; border: 1px solid var(--gm-border); border-radius: 16px;
+      background: var(--gm-surface); font-size: 12px; font-family: inherit; cursor: pointer; color: var(--gm-text-secondary);
     }
-    .gm-sport-item .cnt { font-size: 11px; color: var(--gm-text-muted); }
-    .gm-sport-item .del {
-      width: 18px; height: 18px; border: none; background: none; cursor: pointer;
-      font-size: 14px; color: var(--gm-text-muted); border-radius: 50%; padding: 0; line-height: 1;
-    }
-    .gm-sport-item .del:hover { background: #e8eaed; color: #d93025; }
+    .gm-sub-item .actions button:hover { border-color: var(--gm-primary); color: var(--gm-primary); }
+    .gm-sub-item .actions .del:hover { border-color: #d93025; color: #d93025; }
 
     .gm-toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -204,12 +199,9 @@
     .gm-menu a { display: block; padding: 10px 20px; color: var(--gm-text); text-decoration: none; font-size: 14px; }
     .gm-menu a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
 
-    .gm-skeleton {
-      height: 20px; background: linear-gradient(90deg, #f1f3f4 25%, #e8eaed 50%, #f1f3f4 75%);
-      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 10px;
+    @media (max-width: 860px) {
+      .gm-category-grid { grid-template-columns: repeat(1, 1fr); }
     }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
     @media (max-width: 720px) {
       .gm-topbar-inner { padding: 0 16px; gap: 12px; }
       .gm-nav { display: none; }
@@ -232,7 +224,6 @@
         <% } %>
       </nav>
       <div class="gm-nav-right">
-        <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建</a>
         <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
         <div class="gm-menu" id="userMenu">
           <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
@@ -243,86 +234,95 @@
   </header>
 
   <main class="gm-main">
-    <div class="gm-tabs" id="channelBar">
-      <span class="gm-skeleton" style="width:80px;margin:14px 20px"></span>
-      <span class="gm-skeleton" style="width:80px;margin:14px 20px"></span>
-      <span class="gm-skeleton" style="width:80px;margin:14px 20px"></span>
-      <span class="gm-skeleton" style="width:80px;margin:14px 20px"></span>
-    </div>
-
-    <div class="gm-page-header">
-      <h2 id="pageTitle"><%= sportName || '选择运动项目' %></h2>
-      <div class="gm-spacer"></div>
-      <% if (user.role === 'admin') { %>
-        <button class="gm-btn gm-btn-outline" id="manageSportsBtn">管理项目</button>
-      <% } %>
-      <% if (sportName) { %>
-        <a href="/plan/new?sportGroup=<%= encodeURIComponent(sportGroup) %>&sportName=<%= encodeURIComponent(sportName) %>" class="gm-btn gm-btn-primary" id="createBtn">+ 新建教案</a>
-      <% } %>
-    </div>
-
-    <div class="gm-chips" id="sportChips">
-      <div class="gm-skeleton" style="width:60px;display:inline-block"></div>
-      <div class="gm-skeleton" style="width:60px;display:inline-block;margin-left:8px"></div>
-      <div class="gm-skeleton" style="width:60px;display:inline-block;margin-left:8px"></div>
-    </div>
-
-    <% if (sportName) { %>
-      <div class="gm-lesson-list" id="lessonList">
-        <% if (lessons && lessons.length > 0) {
-          for (var i = 0; i < lessons.length; i++) {
-            var p = lessons[i]; %>
-          <a href="/plan/<%= p.id %>" class="gm-lesson-item">
-            <div class="gm-lesson-num"><%= p.sessionNumber || i+1 %></div>
-            <div class="gm-lesson-info">
-              <div class="t"><%= p.title %></div>
-              <div class="m"><%= p.author %> · <%= formatDate(p.createdAt) %></div>
-            </div>
-            <span class="gm-lesson-arrow">›</span>
+    <% if (!catId) { %>
+      <!-- 一级类目卡片 -->
+      <div class="gm-page-header">
+        <h2>课程资源</h2>
+        <div class="gm-spacer"></div>
+      </div>
+      <div class="gm-category-grid" id="categoryGrid">
+        <% if (cats && cats.length > 0) {
+          for (var ci = 0; ci < cats.length; ci++) {
+            var cat = cats[ci];
+            var subCount = cat.subcategories ? cat.subcategories.length : 0; %>
+          <a href="/courses?cat=<%= encodeURIComponent(cat.id) %>" class="gm-category-card">
+            <div class="icon"><%= cat.icon || '📁' %></div>
+            <div class="name"><%= cat.name %></div>
+            <div class="sub-count"><%= subCount %> 个子类目</div>
           </a>
         <% } } else { %>
-          <div class="gm-empty">
-            <p style="font-size:15px;font-weight:500;color:var(--gm-text)">暂无教案</p>
-            <p style="margin-top:4px">点击下方按钮创建第一节课</p>
-            <br>
-            <a href="/plan/new?sportGroup=<%= encodeURIComponent(sportGroup) %>&sportName=<%= encodeURIComponent(sportName) %>" class="gm-btn gm-btn-primary">创建第一节课</a>
-          </div>
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gm-text-muted)">暂无类目</div>
         <% } %>
       </div>
     <% } else { %>
-      <div class="gm-lesson-list">
-        <div class="gm-empty">
-          <div class="icon">🏃</div>
-          <p style="font-size:15px;font-weight:500;color:var(--gm-text)">选择一个运动项目</p>
-          <p style="margin-top:4px">在上方点击项目名称查看课程教案</p>
-        </div>
+      <!-- 子类目标签 + 教案列表 -->
+      <div class="gm-page-header">
+        <a href="/courses" style="color:var(--gm-text-secondary);text-decoration:none;font-size:24px;line-height:1" title="返回">&larr;</a>
+        <h2 id="catTitle">加载中...</h2>
+        <div class="gm-spacer"></div>
+        <% if (user.role === 'admin') { %>
+          <button class="gm-btn gm-btn-outline" id="manageSubBtn">管理子类目</button>
+        <% } %>
+        <% if (subId) { %>
+          <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary">+ 新建教案</a>
+        <% } %>
       </div>
+
+      <div class="gm-tabs" id="subTabs">
+        <span class="gm-skeleton" style="width:100px;margin:14px 20px"></span>
+        <span class="gm-skeleton" style="width:100px;margin:14px 20px"></span>
+      </div>
+
+      <% if (subId) { %>
+        <div class="gm-lesson-list" id="lessonList">
+          <% if (lessons && lessons.length > 0) {
+            for (var li = 0; li < lessons.length; li++) {
+              var p = lessons[li]; %>
+            <a href="/plan/<%= p.id %>" class="gm-lesson-item">
+              <div class="gm-lesson-num"><%= li+1 %></div>
+              <div class="gm-lesson-info">
+                <div class="t"><%= p.title %></div>
+                <div class="m"><%= p.author %> · <%= formatDate(p.createdAt) %></div>
+              </div>
+              <span class="gm-lesson-arrow">›</span>
+            </a>
+          <% } } else { %>
+            <div class="gm-empty">
+              <p style="font-size:15px;font-weight:500;color:var(--gm-text)">暂无教案</p>
+              <p style="margin-top:4px">选择子类目后创建第一份教案</p>
+              <br>
+              <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary">创建教案</a>
+            </div>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div class="gm-lesson-list">
+          <div class="gm-empty">
+            <div class="icon">📂</div>
+            <p style="font-size:15px;font-weight:500;color:var(--gm-text)">选择一个子类目</p>
+            <p style="margin-top:4px">在上方点击子类目查看教案</p>
+          </div>
+        </div>
+      <% } %>
     <% } %>
   </main>
 
-  <div class="gm-overlay" id="sportsOverlay">
+  <!-- 管理子类目弹窗 -->
+  <div class="gm-overlay" id="subOverlay">
     <div class="gm-modal">
       <div class="gm-modal-header">
-        <h3>管理运动项目</h3>
+        <h3>管理子类目</h3>
         <button class="gm-modal-close" id="modalClose">&times;</button>
       </div>
       <div class="gm-modal-body">
         <div class="gm-form-group">
-          <label>添加运动项目</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <select class="gm-select" id="addSportGroup" style="width:140px;flex-shrink:0">
-              <option value="">选择课程组</option>
-            </select>
-            <input class="gm-input" id="newSportInput" placeholder="项目名称，如 橄榄球" style="width:180px;flex:1;min-width:120px" maxlength="30">
-            <button class="gm-btn gm-btn-primary" id="addSportBtn">添加</button>
-          </div>
-          <div id="newGroupRow" style="display:none;margin-top:8px">
-            <input class="gm-input" id="newGroupInput" placeholder="新课程组名称，如 体育5" style="width:100%" maxlength="30">
+          <label>添加子类目（最多3个）</label>
+          <div style="display:flex;gap:8px">
+            <input class="gm-input gm-input-sm" id="newSubInput" placeholder="子类目名称" maxlength="30">
+            <button class="gm-btn gm-btn-primary" id="addSubBtn">添加</button>
           </div>
         </div>
-        <div id="sportsList" style="margin-top:8px">
-          <span style="color:var(--gm-text-muted);font-size:13px">加载中...</span>
-        </div>
+        <div id="subList"></div>
       </div>
       <div class="gm-modal-footer">
         <button class="gm-btn gm-btn-outline" id="modalDone">完成</button>
@@ -333,86 +333,9 @@
   <div class="gm-toast" id="toast"></div>
 
   <script>
-    var currGroup = '<%= sportGroup %>';
-    var currSport = '<%= sportName %>';
-    var hierarchyData = {};
-
-    document.getElementById('avatarBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.getElementById('userMenu').classList.toggle('show');
-    });
-    document.addEventListener('click', function() { document.getElementById('userMenu').classList.remove('show'); });
-
-    loadHierarchy();
-
-    function loadHierarchy(cb) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/sports/hierarchy', true);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState !== 4 || xhr.status !== 200) return;
-        hierarchyData = JSON.parse(xhr.responseText);
-        renderTabs();
-        renderChips();
-        if (cb) cb();
-      };
-      xhr.send();
-    }
-
-    function renderTabs() {
-      var bar = document.getElementById('channelBar');
-      var groups = Object.keys(hierarchyData);
-      if (groups.length === 0) { bar.innerHTML = '<span style="padding:14px 20px;color:var(--gm-text-muted)">暂无课程组</span>'; return; }
-      var html = '';
-      for (var i = 0; i < groups.length; i++) {
-        var g = groups[i];
-        var sportNames = Object.keys(hierarchyData[g] || {});
-        var count = sportNames.length;
-        var active = g === currGroup ? ' active' : '';
-        html += '<button class="gm-tab' + active + '" data-group="' + g + '">' + g + '<span class="cnt">' + count + '</span></button>';
-      }
-      bar.innerHTML = html;
-      bar.querySelectorAll('.gm-tab').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          window.location.href = '/courses?group=' + encodeURIComponent(this.dataset.group);
-        });
-      });
-    }
-
-    function renderChips() {
-      var container = document.getElementById('sportChips');
-      var sports = hierarchyData[currGroup] || {};
-      var sportNames = Object.keys(sports);
-      if (sportNames.length === 0) {
-        container.innerHTML = '<span style="color:var(--gm-text-muted);font-size:13px">该课程组暂无运动项目，管理员可点击「管理项目」添加</span>';
-        return;
-      }
-      var html = '';
-      for (var i = 0; i < sportNames.length; i++) {
-        var s = sportNames[i];
-        var info = sports[s] || { count: 0 };
-        var active = s === currSport ? ' active' : '';
-        html += '<button class="gm-chip' + active + '" data-sport="' + s + '">' + s + '<span class="cnt">' + info.count + '</span></button>';
-      }
-      container.innerHTML = html;
-      container.querySelectorAll('.gm-chip').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var s = this.dataset.sport;
-          if (s === currSport) {
-            window.location.href = '/courses?group=' + encodeURIComponent(currGroup);
-          } else {
-            window.location.href = '/courses?group=' + encodeURIComponent(currGroup) + '&sport=' + encodeURIComponent(s);
-          }
-        });
-      });
-    }
-
-    // Modal
-    var overlay = document.getElementById('sportsOverlay');
-    var addGroupSelect = document.getElementById('addSportGroup');
-    var addSportInput = document.getElementById('newSportInput');
-    var addSportBtn = document.getElementById('addSportBtn');
-    var newGroupInput = document.getElementById('newGroupInput');
-    var newGroupRow = document.getElementById('newGroupRow');
+    var currCatId = '<%= catId %>';
+    var currSubId = '<%= subId %>';
+    var catsData = [];
 
     function showToast(msg) {
       var t = document.getElementById('toast');
@@ -422,110 +345,168 @@
       t._timer = setTimeout(function() { t.style.display = 'none'; }, 2500);
     }
 
-    function getGroupMap() {
-      var map = {};
-      var groups = Object.keys(hierarchyData);
-      for (var gi = 0; gi < groups.length; gi++) {
-        var g = groups[gi];
-        map[g] = [];
-        var sportNames = Object.keys(hierarchyData[g] || {});
-        for (var si = 0; si < sportNames.length; si++) {
-          var s = sportNames[si];
-          var info = hierarchyData[g][s] || {};
-          map[g].push({ id: info.id, sportGroup: g, sportName: s, planCount: info.count || 0 });
+    document.getElementById('avatarBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('userMenu').classList.toggle('show');
+    });
+    document.addEventListener('click', function() { document.getElementById('userMenu').classList.remove('show'); });
+
+    function loadCats(cb) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/categories', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4 || xhr.status !== 200) return;
+        catsData = JSON.parse(xhr.responseText);
+        if (currCatId) {
+          renderSubTabs();
+          var cur = getCurCat();
+          if (cur) document.getElementById('catTitle').textContent = cur.name;
         }
-      }
-      return map;
+        if (cb) cb();
+      };
+      xhr.send();
     }
 
-    function renderModalList() {
-      var container = document.getElementById('sportsList');
-      var map = getGroupMap();
-      var gNames = Object.keys(map);
-      if (gNames.length === 0) { container.innerHTML = '<span style="color:var(--gm-text-muted);font-size:13px">暂无运动项目</span>'; return; }
+    function getCurCat() {
+      for (var i = 0; i < catsData.length; i++) {
+        if (catsData[i].id === currCatId) return catsData[i];
+      }
+      return null;
+    }
+
+    function renderSubTabs() {
+      var container = document.getElementById('subTabs');
+      var cat = getCurCat();
+      if (!cat) { container.innerHTML = '<span style="padding:14px 20px;color:var(--gm-text-muted)">类目未找到</span>'; return; }
+      var subs = cat.subcategories || [];
+      if (subs.length === 0) {
+        container.innerHTML = '<span style="padding:14px 20px;color:var(--gm-text-muted)">暂无子类目，管理员可点击「管理子类目」添加</span>';
+        return;
+      }
       var html = '';
-      for (var gi = 0; gi < gNames.length; gi++) {
-        var g = gNames[gi];
-        html += '<div class="gm-sport-group"><div class="gm-sport-group-title">' + g + '</div>';
-        var sports = map[g];
-        for (var si = 0; si < sports.length; si++) {
-          var s = sports[si];
-          html += '<span class="gm-sport-item">' + s.sportName + ' <span class="cnt">' + (s.planCount || 0) + '教案</span> <button class="del" data-id="' + s.id + '" title="删除">&times;</button></span>';
-        }
+      for (var i = 0; i < subs.length; i++) {
+        var s = subs[i];
+        var active = s.id === currSubId ? ' active' : '';
+        html += '<button class="gm-tab' + active + '" data-id="' + s.id + '">' + s.name + '</button>';
+      }
+      container.innerHTML = html;
+      container.querySelectorAll('.gm-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          window.location.href = '/courses?cat=' + encodeURIComponent(currCatId) + '&sub=' + encodeURIComponent(this.dataset.id);
+        });
+      });
+    }
+
+    // Subcategory management modal
+    var overlay = document.getElementById('subOverlay');
+
+    function renderSubModal() {
+      var container = document.getElementById('subList');
+      var cat = getCurCat();
+      if (!cat) { container.innerHTML = ''; return; }
+      var subs = cat.subcategories || [];
+      if (subs.length === 0) {
+        container.innerHTML = '<span style="color:var(--gm-text-muted);font-size:13px">暂无子类目</span>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < subs.length; i++) {
+        var s = subs[i];
+        html += '<div class="gm-sub-item">';
+        html += '  <span class="name">' + s.name + '</span>';
+        html += '  <div class="actions">';
+        html += '    <button class="edit-sub" data-id="' + s.id + '" data-name="' + s.name.replace(/"/g,'&quot;') + '">编辑</button>';
+        html += '    <button class="del del-sub" data-id="' + s.id + '">删除</button>';
+        html += '  </div>';
         html += '</div>';
       }
       container.innerHTML = html;
-      container.querySelectorAll('.del').forEach(function(btn) {
+
+      container.querySelectorAll('.edit-sub').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var id = this.dataset.id;
-          if (!confirm('确定删除该运动项目？')) return;
+          var oldName = this.dataset.name;
+          var newName = prompt('编辑子类目名称：', oldName);
+          if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
           var xhr = new XMLHttpRequest();
-          xhr.open('DELETE', '/api/sports/config/' + id, true);
+          xhr.open('PUT', '/api/subcategories/' + id, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) return;
-            if (xhr.status === 200) { showToast('已删除'); loadHierarchy(function() { renderModalList(); }); }
-            else showToast('删除失败');
+            if (xhr.status === 200) {
+              showToast('已更新');
+              loadCats(function() { renderSubModal(); renderSubTabs(); });
+            } else showToast('更新失败');
+          };
+          xhr.send(JSON.stringify({ name: newName.trim() }));
+        });
+      });
+
+      container.querySelectorAll('.del-sub').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          if (!confirm('确定删除该子类目？')) return;
+          var xhr = new XMLHttpRequest();
+          xhr.open('DELETE', '/api/subcategories/' + id, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status === 200) {
+              showToast('已删除');
+              loadCats(function() {
+                renderSubModal();
+                renderSubTabs();
+                // 如果当前选中的子类目被删除，跳转回类目页
+                var cur = getCurCat();
+                var stillExists = false;
+                if (cur) {
+                  for (var i = 0; i < cur.subcategories.length; i++) {
+                    if (cur.subcategories[i].id === currSubId) stillExists = true;
+                  }
+                }
+                if (!stillExists && currSubId) {
+                  window.location.href = '/courses?cat=' + encodeURIComponent(currCatId);
+                }
+              });
+            } else showToast('删除失败');
           };
           xhr.send();
         });
       });
-
-      addGroupSelect.innerHTML = '<option value="">选择课程组</option><option value="__new__">+ 新建课程组...</option>';
-      for (var gi = 0; gi < gNames.length; gi++) {
-        addGroupSelect.innerHTML += '<option value="' + gNames[gi] + '">' + gNames[gi] + '</option>';
-      }
     }
 
-    addGroupSelect.addEventListener('change', function() {
-      if (this.value === '__new__') {
-        newGroupRow.style.display = 'block';
-        newGroupInput.focus();
-      } else {
-        newGroupRow.style.display = 'none';
-        newGroupInput.value = '';
-      }
-    });
-
-    function doAddSport() {
-      var group = addGroupSelect.value;
-      var name = addSportInput.value.trim();
-      if (group === '__new__' || (group === '' && newGroupRow.style.display === 'block')) {
-        group = newGroupInput.value.trim();
-        if (!group) { showToast('请输入新课程组名称'); newGroupInput.focus(); return; }
-      }
-      if (!group || group === '' || group === '__new__') { showToast('请选择课程组'); return; }
-      if (!name) { showToast('请输入运动项目名称'); addSportInput.focus(); return; }
-
+    function doAddSub() {
+      var input = document.getElementById('newSubInput');
+      var name = input.value.trim();
+      if (!name) { showToast('请输入子类目名称'); return; }
       var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/sports/config', true);
+      xhr.open('POST', '/api/categories/' + currCatId + '/subcategories', true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.onreadystatechange = function() {
         if (xhr.readyState !== 4) return;
         if (xhr.status === 200) {
-          addSportInput.value = '';
-          newGroupRow.style.display = 'none';
-          newGroupInput.value = '';
-          showToast('已添加「' + name + '」');
-          loadHierarchy(function() { renderModalList(); });
+          input.value = '';
+          showToast('已添加');
+          loadCats(function() { renderSubModal(); renderSubTabs(); });
         } else {
           var r = JSON.parse(xhr.responseText);
           showToast(r.error || '添加失败');
         }
       };
-      xhr.send(JSON.stringify({ sportGroup: group, sportName: name }));
+      xhr.send(JSON.stringify({ name: name }));
     }
 
-    addSportBtn.addEventListener('click', doAddSport);
-    addSportInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doAddSport(); });
-    newGroupInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doAddSport(); });
+    document.getElementById('addSubBtn').addEventListener('click', doAddSub);
+    document.getElementById('newSubInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') doAddSub(); });
 
-    document.getElementById('manageSportsBtn').addEventListener('click', function() {
+    document.getElementById('manageSubBtn').addEventListener('click', function() {
       overlay.classList.add('show');
-      renderModalList();
+      renderSubModal();
     });
     document.getElementById('modalClose').addEventListener('click', function() { overlay.classList.remove('show'); });
     document.getElementById('modalDone').addEventListener('click', function() { overlay.classList.remove('show'); });
     overlay.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+
+    loadCats();
   </script>
   <script src="/js/main.js"></script>
 </body>
