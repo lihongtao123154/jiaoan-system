@@ -232,7 +232,6 @@
         <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
         <div class="gm-menu" id="userMenu">
           <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
-          <% if (user.role === 'admin') { %><a href="/dashboard">私人空间</a><% } %>
           <a href="/logout">退出登录</a>
         </div>
       </div>
@@ -410,7 +409,7 @@
       <input type="hidden" name="subcategoryId" id="planSubcategoryId" value="<%= (plan ? plan.subcategoryId : '') || (preset ? preset.subcategoryId : '') %>">
 
       <div class="gm-actions">
-        <a href="<%= plan ? '/plan/' + plan.id : (preset && preset.categoryId ? '/courses?cat=' + encodeURIComponent(preset.categoryId) + '&sub=' + encodeURIComponent(preset.subcategoryId) : '/dashboard') %>" class="gm-btn gm-btn-outline">取消</a>
+        <a href="<%= plan ? '/plan/' + plan.id : (preset && preset.categoryId ? '/dashboard?cat=' + encodeURIComponent(preset.categoryId) + '&sub=' + encodeURIComponent(preset.subcategoryId) : '/dashboard') %>" class="gm-btn gm-btn-outline">取消</a>
         <button type="submit" class="gm-btn gm-btn-primary gm-btn-lg" id="saveBtn">
           <%= plan ? '保存修改' : '创建教案' %>
         </button>

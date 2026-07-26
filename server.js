@@ -1330,7 +1330,7 @@ app.post('/plan', isAuthenticated, (req, res) => {
   const tagIds = req.body.tagIds || [];
   const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
   if (safeTagIds.length > 0) setPlanTags(planId, safeTagIds.filter(Boolean));
-  res.redirect('/courses?cat=' + encodeURIComponent(categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || ''));
+  res.redirect('/dashboard?cat=' + encodeURIComponent(categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || ''));
 });
 
 app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
@@ -1351,7 +1351,8 @@ app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
     const avgRating = getAvgRating(req.params.id);
     const favorited = isFavorited(req.session.user.id, req.params.id);
     const versions = getVersions(req.params.id);
-    res.render('plan-view', { plan, course, tags, comments, avgRating, favorited, versions });
+    const from = req.query.from || 'private';
+    res.render('plan-view', { plan, course, tags, comments, avgRating, favorited, versions, from });
   } catch (e) { next(e); }
 });
 
@@ -1397,7 +1398,7 @@ app.post('/plan/:id', isAuthenticated, (req, res) => {
   const tagIds = req.body.tagIds || [];
   const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
   setPlanTags(req.params.id, safeTagIds.filter(Boolean));
-  var back = req.body._redirect || '/courses?cat=' + encodeURIComponent(categoryId || existing.categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || existing.subcategoryId || '');
+  var back = req.body._redirect || '/dashboard?cat=' + encodeURIComponent(categoryId || existing.categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || existing.subcategoryId || '');
   res.redirect(back);
 });
 
@@ -1429,7 +1430,8 @@ app.post('/plan/:id/delete', isAuthenticated, (req, res) => {
   }
 
   deletePlan(req.params.id);
-  res.redirect('/dashboard');
+  const redirectTo = req.body.from === 'public' ? '/hall' : '/dashboard';
+  res.redirect(redirectTo);
 });
 
 // ==================== 路由: 文件上传 ====================

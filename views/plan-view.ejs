@@ -29,12 +29,13 @@
   <main class="main-content">
     <div class="plan-detail">
       <div class="detail-actions">
-        <a href="/dashboard" class="btn btn-sm btn-outline">返回首页</a>
+        <a href="<%= from === 'public' ? '/hall' : '/dashboard' %>" class="btn btn-sm btn-outline">返回首页</a>
         <% if (plan.authorId === user.id || user.role === 'admin') { %>
         <div class="detail-actions-right">
-          <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
+          <a href="/plan/<%= plan.id %>/edit?from=<%= from || 'private' %>" class="btn btn-sm btn-secondary">编辑</a>
           <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
                 onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+            <input type="hidden" name="from" value="<%= from || 'private' %>">
             <button type="submit" class="btn btn-sm btn-danger">删除</button>
           </form>
         </div>

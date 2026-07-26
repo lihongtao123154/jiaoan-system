@@ -241,7 +241,7 @@
         <% } } %>
       </nav>
       <div class="gm-nav-right">
-        <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建</a>
+        <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary">+ 新建</a>
         <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
         <div class="gm-menu" id="userMenu">
           <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
@@ -350,7 +350,7 @@
                 </div>
               <% } %>
               <div class="gm-card-actions">
-                <a href="/plan/<%= plan.id %>" class="gm-btn gm-btn-outline">查看</a>
+                <a href="/plan/<%= plan.id %>?from=<%= pageType %>" class="gm-btn gm-btn-outline">查看</a>
                 <a href="/plan/<%= plan.id %>/edit" class="gm-btn gm-btn-outline">编辑</a>
                 <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form" style="margin-left:auto"
                       onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
