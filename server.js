@@ -584,15 +584,15 @@ for (var mi = 0; mi < migrateFiles.length; mi++) {
     var subfolder = f.type === 'video' ? 'videos' : f.type === 'image' ? 'images' : 'docs';
     var oldPath = path.join(UPLOADS_DIR, subfolder, f.filename);
     var newPath = path.join(UPLOADS_DIR, subfolder, newName);
-    try {
-      if (fs.existsSync(oldPath)) {
-        fs.renameSync(oldPath, newPath);
-        console.log('[迁移] 重命名: ' + f.filename + ' → ' + newName);
-      }
-    } catch (e) { console.error('[迁移] 重命名失败:', f.filename, e.message); }
-    f.filename = newName;
-    f.url = '/uploads/' + subfolder + '/' + newName;
-    changed = true;
+  try {
+    if (fs.existsSync(oldPath)) {
+      fs.renameSync(oldPath, newPath);
+      console.log('[迁移] 重命名: ' + f.filename + ' → ' + newName);
+      f.filename = newName;
+      f.url = '/uploads/' + subfolder + '/' + newName;
+      changed = true;
+    }
+  } catch (e) { console.error('[迁移] 重命名失败:', f.filename, e.message); }
   }
   if (changed) {
     db.prepare("UPDATE plans SET files = ? WHERE id = ?").run(JSON.stringify(fileList), row.id);
