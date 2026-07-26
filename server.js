@@ -386,6 +386,23 @@ db.exec(`
     createdBy TEXT NOT NULL,
     createdAt TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    icon TEXT DEFAULT '',
+    sortOrder INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS subcategories (
+    id TEXT PRIMARY KEY,
+    categoryId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    sortOrder INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+  );
 `);
 
 // 数据库迁移：添加新字段（如果不存在）
@@ -430,6 +447,14 @@ function migrateSchema() {
   if (!cols.includes('sessionNumber')) {
     db.exec("ALTER TABLE plans ADD COLUMN sessionNumber INTEGER DEFAULT 0");
     console.log('[迁移] plans 表增加 sessionNumber 字段');
+  }
+  if (!cols.includes('categoryId')) {
+    db.exec("ALTER TABLE plans ADD COLUMN categoryId TEXT DEFAULT ''");
+    console.log('[迁移] plans 表增加 categoryId 字段');
+  }
+  if (!cols.includes('subcategoryId')) {
+    db.exec("ALTER TABLE plans ADD COLUMN subcategoryId TEXT DEFAULT ''");
+    console.log('[迁移] plans 表增加 subcategoryId 字段');
   }
 }
 
@@ -510,6 +535,22 @@ if (configCount === 0) {
     }
   }
   console.log('[初始化] 运动项目配置写入 ' + order + ' 项');
+}
+
+// ---------- 类目种子数据 ----------
+var catCount = db.prepare('SELECT COUNT(*) as c FROM categories').get().c;
+if (catCount === 0) {
+  var defaultCats = [
+    { name: '《体育与健康》课程思政教学案例', icon: '📖', sortOrder: 0 },
+    { name: '教学要件', icon: '📋', sortOrder: 1 },
+    { name: '教学影集', icon: '📸', sortOrder: 2 }
+  ];
+  var insCat = db.prepare('INSERT INTO categories (id, name, icon, sortOrder, createdAt) VALUES (?, ?, ?, ?, ?)');
+  for (var ci = 0; ci < defaultCats.length; ci++) {
+    var c = defaultCats[ci];
+    insCat.run('cat_' + ci, c.name, c.icon, c.sortOrder, new Date().toISOString());
+  }
+  console.log('[初始化] 已创建 ' + defaultCats.length + ' 个一级类目');
 }
 
 function seedSportLessons() {
@@ -637,17 +678,17 @@ function getPlanById(id) {
   return db.prepare('SELECT * FROM plans WHERE id = ?').get(id);
 }
 
-function createPlan(title, content, author, authorId, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber) {
+function createPlan(title, content, author, authorId, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, categoryId, subcategoryId) {
   const id = 'plan_' + uuidv4().slice(0, 8);
   const now = new Date().toISOString();
-  db.prepare('INSERT INTO plans (id, title, content, author, authorId, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(id, title, content || '', author, authorId, JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', isPublic ? 1 : 0, sportGroup || '', sportName || '', sessionNumber || 0, now, now);
+  db.prepare('INSERT INTO plans (id, title, content, author, authorId, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, categoryId, subcategoryId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, title, content || '', author, authorId, JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', isPublic ? 1 : 0, sportGroup || '', sportName || '', sessionNumber || 0, categoryId || '', subcategoryId || '', now, now);
   return id;
 }
 
-function updatePlan(id, title, content, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber) {
-  db.prepare('UPDATE plans SET title = ?, content = ?, files = ?, courseId = ?, sessionName = ?, coverUrl = ?, isPublic = ?, sportGroup = ?, sportName = ?, sessionNumber = ?, updatedAt = ? WHERE id = ?')
-    .run(title, content || '', JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', isPublic ? 1 : 0, sportGroup || '', sportName || '', sessionNumber || 0, new Date().toISOString(), id);
+function updatePlan(id, title, content, files, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, categoryId, subcategoryId) {
+  db.prepare('UPDATE plans SET title = ?, content = ?, files = ?, courseId = ?, sessionName = ?, coverUrl = ?, isPublic = ?, sportGroup = ?, sportName = ?, sessionNumber = ?, categoryId = ?, subcategoryId = ?, updatedAt = ? WHERE id = ?')
+    .run(title, content || '', JSON.stringify(files || []), courseId || '', sessionName || '', coverUrl || '', isPublic ? 1 : 0, sportGroup || '', sportName || '', sessionNumber || 0, categoryId || '', subcategoryId || '', new Date().toISOString(), id);
 }
 
 function deletePlan(id) {
@@ -772,6 +813,50 @@ function deleteOldVersions(planId, keep) {
     const del = db.prepare('DELETE FROM versions WHERE id = ?');
     for (const v of toDelete) del.run(v.id);
   }
+}
+
+// ==================== 类目/子类目 ====================
+function getAllCategories() {
+  return db.prepare('SELECT * FROM categories ORDER BY sortOrder ASC').all();
+}
+function getCategoryById(id) {
+  return db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
+}
+function createCategory(name, icon) {
+  var id = 'cat_' + require('uuid').v4().slice(0, 8);
+  var maxOrder = db.prepare('SELECT MAX(sortOrder) as m FROM categories').get().m || 0;
+  db.prepare('INSERT INTO categories (id, name, icon, sortOrder, createdAt) VALUES (?, ?, ?, ?, ?)').run(id, name, icon || '', maxOrder + 1, new Date().toISOString());
+  return id;
+}
+function updateCategory(id, name, icon) {
+  db.prepare('UPDATE categories SET name = ?, icon = ? WHERE id = ?').run(name, icon || '', id);
+}
+function deleteCategory(id) {
+  db.prepare('DELETE FROM subcategories WHERE categoryId = ?').run(id);
+  db.prepare("UPDATE plans SET categoryId = '' WHERE categoryId = ?").run(id);
+  db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+}
+function getSubcategories(categoryId) {
+  return db.prepare('SELECT * FROM subcategories WHERE categoryId = ? ORDER BY sortOrder ASC').all(categoryId);
+}
+function getSubcategoryById(id) {
+  return db.prepare('SELECT * FROM subcategories WHERE id = ?').get(id);
+}
+function createSubcategory(categoryId, name) {
+  var count = db.prepare('SELECT COUNT(*) as c FROM subcategories WHERE categoryId = ?').get(categoryId).c;
+  if (count >= 3) return null; // 最多3个子类目
+  var id = 'sub_' + require('uuid').v4().slice(0, 8);
+  var maxOrder = db.prepare('SELECT MAX(sortOrder) as m FROM subcategories WHERE categoryId = ?').get(categoryId).m || 0;
+  db.prepare('INSERT INTO subcategories (id, categoryId, name, sortOrder, createdAt) VALUES (?, ?, ?, ?, ?)').run(id, categoryId, name, maxOrder + 1, new Date().toISOString());
+  return id;
+}
+function updateSubcategory(id, name) {
+  db.prepare('UPDATE subcategories SET name = ? WHERE id = ?').run(name, id);
+}
+function deleteSubcategory(id) {
+  var sub = getSubcategoryById(id);
+  if (sub) db.prepare("UPDATE plans SET subcategoryId = '' WHERE subcategoryId = ?").run(id);
+  db.prepare('DELETE FROM subcategories WHERE id = ?').run(id);
 }
 
 // 统计
@@ -1075,14 +1160,81 @@ app.get('/api/sports/:group/:sport/lessons', isAuthenticated, (req, res) => {
   res.json({ group: req.params.group, sport: req.params.sport, lessons: lessons });
 });
 
-app.get('/courses', isAuthenticated, (req, res) => {
-  var sportGroup = req.query.group || '体育1';
-  var sportName = req.query.sport || '';
-  var lessons = [];
-  if (sportName) {
-    lessons = db.prepare('SELECT * FROM plans WHERE sportGroup = ? AND sportName = ? ORDER BY createdAt ASC').all(sportGroup, sportName).map(parsePlanFiles);
+// ==================== 类目/子类目 API ====================
+app.get('/api/categories', isAuthenticated, (req, res) => {
+  var cats = getAllCategories();
+  for (var i = 0; i < cats.length; i++) {
+    cats[i].subcategories = getSubcategories(cats[i].id);
   }
-  res.render('courses', { user: req.session.user, sportGroup, sportName, lessons, error: null, pageType: 'private' });
+  res.json(cats);
+});
+
+app.post('/api/categories', isAuthenticated, isAdmin, (req, res) => {
+  var { name, icon } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: '请输入类目名称' });
+  createCategory(name.trim(), icon);
+  res.json({ success: true, categories: getAllCategories() });
+});
+
+app.put('/api/categories/:id', isAuthenticated, isAdmin, (req, res) => {
+  var { name, icon } = req.body;
+  var cat = getCategoryById(req.params.id);
+  if (!cat) return res.status(404).json({ error: '类目不存在' });
+  updateCategory(req.params.id, name || cat.name, icon !== undefined ? icon : cat.icon);
+  res.json({ success: true, categories: getAllCategories() });
+});
+
+app.delete('/api/categories/:id', isAuthenticated, isAdmin, (req, res) => {
+  var cat = getCategoryById(req.params.id);
+  if (!cat) return res.status(404).json({ error: '类目不存在' });
+  deleteCategory(req.params.id);
+  res.json({ success: true, categories: getAllCategories() });
+});
+
+app.get('/api/categories/:id/subcategories', isAuthenticated, (req, res) => {
+  res.json(getSubcategories(req.params.id));
+});
+
+app.post('/api/categories/:id/subcategories', isAuthenticated, isAdmin, (req, res) => {
+  var { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: '请输入子类目名称' });
+  var cat = getCategoryById(req.params.id);
+  if (!cat) return res.status(404).json({ error: '类目不存在' });
+  var id = createSubcategory(req.params.id, name.trim());
+  if (!id) return res.status(400).json({ error: '每个类目最多3个子类目' });
+  res.json({ success: true, subcategories: getSubcategories(req.params.id) });
+});
+
+app.put('/api/subcategories/:id', isAuthenticated, isAdmin, (req, res) => {
+  var { name } = req.body;
+  var sub = getSubcategoryById(req.params.id);
+  if (!sub) return res.status(404).json({ error: '子类目不存在' });
+  if (!name || !name.trim()) return res.status(400).json({ error: '请输入子类目名称' });
+  updateSubcategory(req.params.id, name.trim());
+  res.json({ success: true, subcategories: getSubcategories(sub.categoryId) });
+});
+
+app.delete('/api/subcategories/:id', isAuthenticated, isAdmin, (req, res) => {
+  var sub = getSubcategoryById(req.params.id);
+  if (!sub) return res.status(404).json({ error: '子类目不存在' });
+  deleteSubcategory(req.params.id);
+  res.json({ success: true, subcategories: getSubcategories(sub.categoryId) });
+});
+
+// ==================== 课程管理 ====================
+app.get('/courses', isAuthenticated, async (req, res) => {
+  var catId = req.query.cat || '';
+  var subId = req.query.sub || '';
+  var cats = getAllCategories();
+  var lessons = [];
+  if (catId && subId) {
+    var sub = getSubcategoryById(subId);
+    if (sub) {
+      lessons = db.prepare('SELECT * FROM plans WHERE subcategoryId = ? ORDER BY createdAt ASC').all(subId).map(parsePlanFiles);
+      for (var li = 0; li < lessons.length; li++) { await enrichPlanFiles(lessons[li]); }
+    }
+  }
+  res.render('courses', { user: req.session.user, cats, catId, subId, lessons, error: null, pageType: 'private' });
 });
 
 // ==================== 路由: 资源管理 ====================
@@ -1136,12 +1288,13 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
 app.get('/plan/new', isAuthenticated, (req, res) => {
   const courses = getAllCourses();
   const allTags = getAllTags();
-  const preset = { sportGroup: req.query.sportGroup || '', sportName: req.query.sportName || '' };
-  res.render('plan-edit', { plan: null, error: null, courses, allTags, useCOS, preset });
+  const cats = getAllCategories();
+  const preset = { sportGroup: req.query.sportGroup || '', sportName: req.query.sportName || '', categoryId: req.query.cat || '', subcategoryId: req.query.sub || '' };
+  res.render('plan-edit', { plan: null, error: null, courses, allTags, cats, useCOS, preset });
 });
 
 app.post('/plan', isAuthenticated, (req, res) => {
-  const { title, content, fileList, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber } = req.body;
+  const { title, content, fileList, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, categoryId, subcategoryId } = req.body;
   if (!title || !title.trim()) {
     const courses = getAllCourses();
     return res.render('plan-edit', { plan: null, error: '请输入教案标题', courses, allTags: getAllTags(), useCOS });
@@ -1155,12 +1308,12 @@ app.post('/plan', isAuthenticated, (req, res) => {
   // XSS 防护：清洗富文本内容
   const safeContent = sanitizeHtml(content || '');
 
-  const planId = createPlan(title.trim(), safeContent, req.session.user.displayName, req.session.user.id, parsedFiles, courseId, sessionName, coverUrl, isPublic === '1', sportGroup, sportName, parseInt(sessionNumber) || 0);
+  const planId = createPlan(title.trim(), safeContent, req.session.user.displayName, req.session.user.id, parsedFiles, courseId, sessionName, coverUrl, isPublic === '1', sportGroup, sportName, parseInt(sessionNumber) || 0, categoryId, subcategoryId);
   // 保存标签
   const tagIds = req.body.tagIds || [];
   const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
   if (safeTagIds.length > 0) setPlanTags(planId, safeTagIds.filter(Boolean));
-  res.redirect('/dashboard');
+  res.redirect('/courses?cat=' + encodeURIComponent(categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || ''));
 });
 
 app.get('/plan/:id', isAuthenticated, async (req, res, next) => {
@@ -1192,12 +1345,13 @@ app.get('/plan/:id/edit', isAuthenticated, (req, res) => {
   }
   const courses = getAllCourses();
   const allTags = getAllTags();
+  const cats = getAllCategories();
   const planTags = getPlanTags(req.params.id);
-  res.render('plan-edit', { plan, error: null, courses, allTags, planTags, useCOS });
+  res.render('plan-edit', { plan, error: null, courses, allTags, cats, planTags, useCOS });
 });
 
 app.post('/plan/:id', isAuthenticated, (req, res) => {
-  const { title, content, fileList, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber } = req.body;
+  const { title, content, fileList, courseId, sessionName, coverUrl, isPublic, sportGroup, sportName, sessionNumber, categoryId, subcategoryId } = req.body;
   if (!title || !title.trim()) {
     const plan = parsePlanFiles(getPlanById(req.params.id));
     const courses = getAllCourses();
@@ -1221,12 +1375,13 @@ app.post('/plan/:id', isAuthenticated, (req, res) => {
   // XSS 防护：清洗富文本内容
   const safeContent = sanitizeHtml(content || '');
 
-  updatePlan(req.params.id, title.trim(), safeContent, parsedFiles, courseId, sessionName, coverUrl, isPublic === '1', sportGroup, sportName, parseInt(sessionNumber) || 0);
+  updatePlan(req.params.id, title.trim(), safeContent, parsedFiles, courseId, sessionName, coverUrl, isPublic === '1', sportGroup, sportName, parseInt(sessionNumber) || 0, categoryId, subcategoryId);
   // 保存标签
   const tagIds = req.body.tagIds || [];
   const safeTagIds = Array.isArray(tagIds) ? tagIds : [tagIds];
   setPlanTags(req.params.id, safeTagIds.filter(Boolean));
-  res.redirect('/dashboard');
+  var back = req.body._redirect || '/courses?cat=' + encodeURIComponent(categoryId || existing.categoryId || '') + '&sub=' + encodeURIComponent(subcategoryId || existing.subcategoryId || '');
+  res.redirect(back);
 });
 
 app.post('/plan/:id/delete', isAuthenticated, (req, res) => {
