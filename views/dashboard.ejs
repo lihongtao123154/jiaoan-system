@@ -235,6 +235,7 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
+        <a href="<%= pageType === 'public' ? '/hall' : '/dashboard' %>" class="<%= !catId ? 'active' : '' %>">首页</a>
         <% if (cats && cats.length > 0) {
           for (var ni = 0; ni < cats.length; ni++) { %>
           <a href="<%= pageType === 'public' ? '/hall' : '/dashboard' %>?cat=<%= encodeURIComponent(cats[ni].id) %>" class="<%= catId === cats[ni].id ? 'active' : '' %>"><%= cats[ni].name %></a>
@@ -256,10 +257,10 @@
 
     <!-- Page Header -->
     <div class="gm-page-header">
-      <h1><%= catName || (pageType === 'public' ? '公共大厅' : '私人空间') %></h1>
+      <h1><%= catName || (pageType === 'public' ? '公共大厅' : '首页') %></h1>
       <span class="gm-count">共 <%= plans.length %> 个教案</span>
       <div class="gm-spacer"></div>
-      <% if (user.role === 'admin') { %>
+      <% if (catId && user.role === 'admin') { %>
         <a href="/courses?cat=<%= encodeURIComponent(catId) %>" class="gm-btn gm-btn-outline">管理子类目</a>
       <% } %>
       <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary">+ 新建教案</a>
@@ -267,6 +268,8 @@
 
     <% if (pageType === 'public') { %>
       <div class="gm-hint">浏览其他老师分享的公开教案，可以收藏和评论哦</div>
+    <% } else if (!catId) { %>
+      <div class="gm-hint">在上方选择类目查看教案，或点击下方按钮创建</div>
     <% } else { %>
       <div class="gm-hint">点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
     <% } %>
@@ -281,8 +284,9 @@
       </div>
     <% } %>
 
-    <!-- Subcategory Tabs -->
-    <% if (subs && subs.length > 0) { %>
+    <!-- Subcategory Tabs (仅当有catId时显示) -->
+    <% if (catId && subs && subs.length > 0) { %>
+      <div class="gm-sub-tabs">
       <div class="gm-sub-tabs">
         <% for (var si = 0; si < subs.length; si++) { %>
           <a href="?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subs[si].id) %>" class="gm-sub-tab <%= subId === subs[si].id ? 'active' : '' %>"><%= subs[si].name %></a>

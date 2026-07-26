@@ -223,6 +223,7 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
+        <a href="/dashboard">首页</a>
         <% if (cats && cats.length > 0) {
           for (var ni = 0; ni < cats.length; ni++) { %>
           <a href="/dashboard?cat=<%= encodeURIComponent(cats[ni].id) %>"><%= cats[ni].name %></a>

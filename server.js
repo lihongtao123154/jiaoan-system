@@ -1252,7 +1252,7 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
     const courses = getAllCourses();
     const allTags = getAllTags();
     const cats = getCategoriesWithSubs();
-    let catId = req.query.cat || (cats.length > 0 ? cats[0].id : '');
+    let catId = req.query.cat || '';
     const subId = req.query.sub || '';
     const curCat = cats.find(c => c.id === catId);
     const subs = curCat ? curCat.subcategories : [];
@@ -1273,7 +1273,6 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// ==================== 路由: 公共大厅 ====================
 app.get('/hall', isAuthenticated, async (req, res, next) => {
   try {
     const allPlans = getAllPlans().map(parsePlanFiles);
@@ -1281,7 +1280,7 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
     const courses = getAllCourses();
     const allTags = getAllTags();
     const cats = getCategoriesWithSubs();
-    let catId = req.query.cat || (cats.length > 0 ? cats[0].id : '');
+    let catId = req.query.cat || '';
     const subId = req.query.sub || '';
     const curCat = cats.find(c => c.id === catId);
     const subs = curCat ? curCat.subcategories : [];
