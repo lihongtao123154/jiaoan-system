@@ -29,22 +29,6 @@
       background: var(--gm-bg); color: var(--gm-text); min-height: 100vh; font-size: 14px;
     }
 
-    .gm-category-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
-    }
-    .gm-category-card {
-      background: var(--gm-surface); border: 1px solid var(--gm-border);
-      border-radius: var(--gm-radius); padding: 32px 24px; text-align: center;
-      text-decoration: none; color: inherit; cursor: pointer;
-      transition: var(--gm-transition);
-    }
-    .gm-category-card:hover {
-      transform: translateY(-2px); box-shadow: var(--gm-shadow-hover);
-      border-color: var(--gm-primary);
-    }
-    .gm-category-card .icon { font-size: 48px; margin-bottom: 12px; }
-    .gm-category-card .name { font-size: 18px; font-weight: 600; color: var(--gm-text); }
-    .gm-category-card .sub-count { font-size: 13px; color: var(--gm-text-secondary); margin-top: 6px; }
     .gm-sub-tabs {
       display: flex; gap: 8px; margin-bottom: 16px; padding: 8px 0;
     }
@@ -55,7 +39,6 @@
     }
     .gm-sub-tab:hover { background: var(--gm-primary-light); color: var(--gm-primary); border-color: var(--gm-primary); }
     .gm-sub-tab.active { background: var(--gm-primary); color: #fff; border-color: var(--gm-primary); }
-    @media (max-width: 600px) { .gm-category-grid { grid-template-columns: 1fr; } }
 
     /* ====== Google Material Top App Bar ====== */
     .gm-topbar {
@@ -252,7 +235,10 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
-        <span class="gm-nav-title">《体育与健康》课程资源</span>
+        <% if (cats && cats.length > 0) {
+          for (var ni = 0; ni < cats.length; ni++) { %>
+          <a href="<%= pageType === 'public' ? '/hall' : '/dashboard' %>?cat=<%= encodeURIComponent(cats[ni].id) %>" class="<%= catId === cats[ni].id ? 'active' : '' %>"><%= cats[ni].name %></a>
+        <% } } %>
       </nav>
       <div class="gm-nav-right">
         <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建</a>
@@ -270,23 +256,19 @@
 
     <!-- Page Header -->
     <div class="gm-page-header">
-      <h1><%= pageType === 'public' ? '公共大厅' : '私人空间' %></h1>
+      <h1><%= catName || (pageType === 'public' ? '公共大厅' : '私人空间') %></h1>
       <span class="gm-count">共 <%= plans.length %> 个教案</span>
       <div class="gm-spacer"></div>
-      <% if (catId && user.role === 'admin') { %>
+      <% if (user.role === 'admin') { %>
         <a href="/courses?cat=<%= encodeURIComponent(catId) %>" class="gm-btn gm-btn-outline">管理子类目</a>
       <% } %>
-      <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建教案</a>
+      <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary">+ 新建教案</a>
     </div>
 
     <% if (pageType === 'public') { %>
       <div class="gm-hint">浏览其他老师分享的公开教案，可以收藏和评论哦</div>
-    <% } else if (catId) { %>
-      <div class="gm-hint">点击子类目筛选教案，或在上方选择全部类目</div>
-    <% } else if (plans.length > 0) { %>
-      <div class="gm-hint">点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
     <% } else { %>
-      <div class="gm-hint">点击上方按钮创建你的第一个教案，编辑时可选择课程、添加标签和附件</div>
+      <div class="gm-hint">点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
     <% } %>
 
     <!-- Stats (仅管理员可见) -->
@@ -299,32 +281,17 @@
       </div>
     <% } %>
 
-    <!-- Category Cards (when no catId) -->
-    <% if (!catId) { %>
-      <div class="gm-category-grid">
-        <% if (cats && cats.length > 0) {
-          for (var ci = 0; ci < cats.length; ci++) {
-            var cat = cats[ci];
-            var sc = cat.subcategories ? cat.subcategories.length : 0; %>
-          <a href="?cat=<%= encodeURIComponent(cat.id) %>" class="gm-category-card">
-            <div class="icon"><%= cat.icon || '📁' %></div>
-            <div class="name"><%= cat.name %></div>
-            <div class="sub-count"><%= sc %> 个子类目</div>
-          </a>
-        <% } } %>
-      </div>
-    <% } else { %>
-      <!-- Subcategory Tabs -->
+    <!-- Subcategory Tabs -->
+    <% if (subs && subs.length > 0) { %>
       <div class="gm-sub-tabs">
-        <a href="<%= pageType === 'public' ? '/hall' : '/dashboard' %>" class="gm-sub-tab">&larr; 全部类目</a>
-        <% if (cats) {
-          var curCat = null;
-          for (var ci = 0; ci < cats.length; ci++) { if (cats[ci].id === catId) { curCat = cats[ci]; break; } }
-          if (curCat && curCat.subcategories) {
-            for (var si = 0; si < curCat.subcategories.length; si++) {
-              var s = curCat.subcategories[si]; %>
-          <a href="?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(s.id) %>" class="gm-sub-tab <%= subId === s.id ? 'active' : '' %>"><%= s.name %></a>
-        <% } } } %>
+        <% for (var si = 0; si < subs.length; si++) { %>
+          <a href="?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subs[si].id) %>" class="gm-sub-tab <%= subId === subs[si].id ? 'active' : '' %>"><%= subs[si].name %></a>
+        <% } %>
+        <% if (!subId && subs.length > 0) { %>
+          <a href="?cat=<%= encodeURIComponent(catId) %>" class="gm-sub-tab active">全部</a>
+        <% } else { %>
+          <a href="?cat=<%= encodeURIComponent(catId) %>" class="gm-sub-tab">全部</a>
+        <% } %>
       </div>
     <% } %>
 
@@ -342,9 +309,11 @@
     <% if (plans.length === 0) { %>
       <div class="gm-empty">
         <div class="icon">📋</div>
-        <h3><%= catId ? '该分类下暂无教案' : (pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案') %></h3>
-        <p><%= catId ? '尝试其他子类目' : (pageType === 'public' ? '去看看其他分类吧' : '点击下方按钮创建教案') %></p>
-        <a href="/plan/new" class="gm-btn gm-btn-primary" style="padding:10px 28px;font-size:15px">创建教案</a>
+        <h3><%= plans.length === 0 ? (pageType === 'public' ? '公共大厅还没有教案' : '暂无教案') : '' %></h3>
+        <p><%= plans.length === 0 ? (pageType === 'public' ? '去看看其他类目吧' : '点击上方按钮创建教案') : '' %></p>
+        <% if (plans.length === 0) { %>
+        <a href="/plan/new?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(subId) %>" class="gm-btn gm-btn-primary" style="padding:10px 28px;font-size:15px">创建教案</a>
+        <% } %>
       </div>
     <% } else { %>
       <div class="gm-card-grid">

@@ -214,7 +214,10 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
-        <span class="gm-nav-title">《体育与健康》课程资源</span>
+        <% if (cats && cats.length > 0) {
+          for (var ni = 0; ni < cats.length; ni++) { %>
+          <a href="/dashboard?cat=<%= encodeURIComponent(cats[ni].id) %>" class=""><%= cats[ni].name %></a>
+        <% } } %>
       </nav>
       <div class="gm-nav-right">
         <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>

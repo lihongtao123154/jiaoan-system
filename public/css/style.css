@@ -683,3 +683,45 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 }
 .tag-tab:hover { border-color: var(--accent); color: var(--accent); }
 .tag-tab.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* ====== GM Top Bar (共享) ====== */
+.gm-topbar {
+  background: #fff; border-bottom: 1px solid #dadce0;
+  position: sticky; top: 0; z-index: 100;
+}
+.gm-topbar-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  height: 64px; display: flex; align-items: center; gap: 24px;
+}
+.gm-logo {
+  font-size: 20px; font-weight: 600; color: #202124;
+  text-decoration: none; letter-spacing: -0.3px; white-space: nowrap;
+}
+.gm-logo span { color: #1a73e8; }
+.gm-nav { display: flex; align-items: center; gap: 4px; flex: 1; margin-left: 16px; }
+.gm-nav a {
+  padding: 8px 14px; border-radius: 24px; font-size: 14px; font-weight: 500;
+  color: #5f6368; text-decoration: none; transition: all 0.2s cubic-bezier(0.2,0,0,1);
+}
+.gm-nav a:hover { background: #e8f0fe; color: #1a73e8; }
+.gm-nav a.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
+.gm-nav-title { font-size: 16px; font-weight: 600; color: #202124; }
+.gm-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.gm-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: #e8f0fe;
+  color: #1a73e8; display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.2,0,0,1);
+}
+.gm-avatar:hover { box-shadow: 0 0 0 4px rgba(26,115,232,0.12); }
+.gm-menu {
+  display: none; position: absolute; top: 48px; right: 0; background: #fff;
+  border: 1px solid #dadce0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  min-width: 160px; z-index: 200;
+}
+.gm-menu.show { display: block; }
+.gm-menu a {
+  display: block; padding: 10px 20px; color: #202124; text-decoration: none;
+  font-size: 14px; transition: background 0.15s;
+}
+.gm-menu a:hover { background: #f1f3f4; }
+@media (max-width: 600px) { .gm-nav { display: none; } }

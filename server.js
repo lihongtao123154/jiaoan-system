@@ -918,6 +918,7 @@ function isAuthenticated(req, res, next) {
       role: currentUser.role
     };
     res.locals.user = req.session.user;
+    res.locals.cats = getCategoriesWithSubs();
     return next();
   }
   res.redirect('/login');
@@ -1251,10 +1252,13 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
     const courses = getAllCourses();
     const allTags = getAllTags();
     const cats = getCategoriesWithSubs();
-    const catId = req.query.cat || '';
+    let catId = req.query.cat || (cats.length > 0 ? cats[0].id : '');
     const subId = req.query.sub || '';
+    const curCat = cats.find(c => c.id === catId);
+    const subs = curCat ? curCat.subcategories : [];
+    const catName = curCat ? curCat.name : '';
     if (catId) {
-      const subIds = db.prepare('SELECT id FROM subcategories WHERE categoryId = ?').all(catId).map(s => s.id);
+      const subIds = subs.map(s => s.id);
       plans = plans.filter(p => subIds.includes(p.subcategoryId));
     }
     if (subId) {
@@ -1265,7 +1269,7 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
       plan.tags = getPlanTags(plan.id);
     }
     const stats = getPlanStats(req.session.user.id);
-    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, pageType: 'private' });
+    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, catName, subs, pageType: 'private' });
   } catch (e) { next(e); }
 });
 
@@ -1277,10 +1281,13 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
     const courses = getAllCourses();
     const allTags = getAllTags();
     const cats = getCategoriesWithSubs();
-    const catId = req.query.cat || '';
+    let catId = req.query.cat || (cats.length > 0 ? cats[0].id : '');
     const subId = req.query.sub || '';
+    const curCat = cats.find(c => c.id === catId);
+    const subs = curCat ? curCat.subcategories : [];
+    const catName = curCat ? curCat.name : '';
     if (catId) {
-      const subIds = db.prepare('SELECT id FROM subcategories WHERE categoryId = ?').all(catId).map(s => s.id);
+      const subIds = subs.map(s => s.id);
       plans = plans.filter(p => subIds.includes(p.subcategoryId));
     }
     if (subId) {
@@ -1291,7 +1298,7 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
       plan.tags = getPlanTags(plan.id);
     }
     const stats = getPublicStats();
-    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, pageType: 'public' });
+    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, catName, subs, pageType: 'public' });
   } catch (e) { next(e); }
 });
 
