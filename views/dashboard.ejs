@@ -252,14 +252,7 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
-        <% if (user.role === 'admin') { %>
-          <a href="/dashboard" class="<%= pageType === 'private' ? 'active' : '' %>">私人空间</a>
-          <a href="/hall" class="<%= pageType === 'public' ? 'active' : '' %>">公共大厅</a>
-          <a href="/courses">课程管理</a>
-          <a href="/users">用户管理</a>
-        <% } else { %>
-          <span class="gm-nav-title">《体育与健康》课程资源</span>
-        <% } %>
+        <span class="gm-nav-title">《体育与健康》课程资源</span>
       </nav>
       <div class="gm-nav-right">
         <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建</a>
