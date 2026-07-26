@@ -1,5 +1,5 @@
 /* =============================================
-   教案管理系统 - 样式表
+   《体育与健康》课程教学资源库 - 样式表
    设计理念：温暖、亲切、有人情味
    ============================================= */
 
@@ -639,3 +639,47 @@ textarea.form-input { resize: vertical; line-height: 1.8; font-family: var(--fon
 /* ====== 温馨小提示 ====== */
 .hint { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 8px 0; display: flex; align-items: center; gap: 4px; }
 .hint-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-light); color: var(--accent); font-size: 10px; font-weight: 700; flex-shrink: 0; }
+
+/* ====== 一级频道导航栏（学习强国风格） ====== */
+.channel-bar {
+  display: flex; background: #fff; border-radius: var(--radius);
+  border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px;
+}
+.channel-tab {
+  flex: 1; padding: 11px 0; border: none; background: #fff;
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.channel-tab:not(:last-child) { border-right: 1px solid var(--border); }
+.channel-tab:hover { background: #faf8f6; color: var(--text); }
+.channel-tab.active { background: #b91c1c; color: #fff; font-weight: 700; }
+.channel-tab.active:hover { background: #a01818; }
+
+/* ====== 二级运动项目 ====== */
+.sport-bar {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  background: #fff; padding: 10px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); margin-bottom: 12px;
+}
+.sport-tab {
+  padding: 6px 16px; border: 1px solid var(--border); border-radius: 16px;
+  background: #fff; font-size: 13px; font-weight: 500; font-family: inherit;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.sport-tab:hover { border-color: #b91c1c; color: #b91c1c; }
+.sport-tab.active { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+.sport-tab .cnt {
+  display: inline-block; margin-left: 4px; font-size: 11px;
+  background: rgba(0,0,0,0.06); padding: 0 6px; border-radius: 8px; line-height: 18px;
+}
+.sport-tab.active .cnt { background: rgba(255,255,255,0.2); }
+
+/* ====== 标签筛选保留 ====== */
+.tag-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tag-tab {
+  padding: 5px 12px; border: 1.5px solid var(--border); border-radius: 16px;
+  background: #fff; font-size: 12px; font-weight: 500; font-family: inherit;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.tag-tab:hover { border-color: var(--accent); color: var(--accent); }
+.tag-tab.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }

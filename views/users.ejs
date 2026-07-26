@@ -3,100 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>用户管理 - 教案管理系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>用户管理 - 体育与健康课程资源库</title>
+
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    :root {
+      --gm-primary: #1a73e8;
+      --gm-primary-dark: #1557b0;
+      --gm-primary-light: #e8f0fe;
+      --gm-surface: #fff;
+      --gm-bg: #f8f9fa;
+      --gm-text: #202124;
+      --gm-text-secondary: #5f6368;
+      --gm-text-muted: #9aa0a6;
+      --gm-border: #dadce0;
+      --gm-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --gm-radius: 16px;
+      --gm-radius-sm: 8px;
+      --gm-transition: all 0.2s cubic-bezier(0.2,0,0,1);
+    }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--gm-bg); color: var(--gm-text); min-height: 100vh; font-size: 14px;
+    }
+    .gm-topbar {
+      background: var(--gm-surface); border-bottom: 1px solid var(--gm-border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .gm-topbar-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; gap: 24px;
+    }
+    .gm-logo { font-size: 20px; font-weight: 600; color: var(--gm-text); text-decoration: none; letter-spacing: -0.3px; white-space: nowrap; }
+    .gm-logo span { color: var(--gm-primary); }
+    .gm-nav { display: flex; align-items: center; gap: 4px; flex: 1; margin-left: 16px; }
+    .gm-nav a {
+      padding: 8px 14px; border-radius: 24px; font-size: 14px; font-weight: 500;
+      color: var(--gm-text-secondary); text-decoration: none; transition: var(--gm-transition);
+    }
+    .gm-nav a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+    .gm-nav a.active { background: var(--gm-primary-light); color: var(--gm-primary); font-weight: 600; }
+    .gm-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .gm-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--gm-primary-light);
+      color: var(--gm-primary); display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--gm-transition);
+    }
+    .gm-avatar:hover { box-shadow: 0 0 0 4px rgba(26,115,232,0.12); }
+    .gm-btn {
+      padding: 8px 20px; border: none; border-radius: 24px; font-size: 14px; font-weight: 500;
+      font-family: inherit; cursor: pointer; transition: var(--gm-transition); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .gm-btn-primary { background: var(--gm-primary); color: #fff; }
+    .gm-btn-primary:hover { background: var(--gm-primary-dark); box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+    .gm-btn-outline { background: transparent; color: var(--gm-primary); border: 1px solid var(--gm-border); }
+    .gm-btn-outline:hover { background: var(--gm-primary-light); border-color: var(--gm-primary); }
+    .gm-btn-danger { color: #d93025; }
+    .gm-btn-danger:hover { background: #fce8e6; }
+
+    .gm-main { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .gm-page-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+    }
+    .gm-page-header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+    .gm-count { color: var(--gm-text-muted); font-size: 14px; font-weight: 500; }
+    .gm-spacer { flex: 1; }
+
+    .gm-card {
+      background: var(--gm-surface); border-radius: var(--gm-radius-sm);
+      border: 1px solid var(--gm-border); margin-bottom: 20px; overflow: hidden;
+    }
+    .gm-card-header {
+      padding: 16px 24px; border-bottom: 1px solid #f1f3f4;
+      font-size: 15px; font-weight: 600;
+    }
+    .gm-card-body { padding: 20px 24px; }
+
+    .gm-form-row {
+      display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+    }
+    .gm-input {
+      padding: 10px 14px; border: 1px solid var(--gm-border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; transition: var(--gm-transition); outline: none;
+      width: 160px;
+    }
+    .gm-input:focus { border-color: var(--gm-primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
+
+    .gm-table-wrap { overflow-x: auto; }
+    .gm-table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .gm-table th {
+      text-align: left; padding: 12px 16px; font-weight: 600;
+      color: var(--gm-text-secondary); font-size: 12px; text-transform: uppercase;
+      letter-spacing: 0.5px; border-bottom: 1px solid var(--gm-border);
+    }
+    .gm-table td {
+      padding: 14px 16px; border-bottom: 1px solid #f1f3f4;
+    }
+    .gm-table tr:last-child td { border-bottom: none; }
+    .gm-table tr:hover td { background: var(--gm-primary-light); }
+
+    .gm-user-avatar-sm {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--gm-primary-light);
+      color: var(--gm-primary); display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 13px; margin-right: 10px; vertical-align: middle;
+    }
+    .gm-role-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+    }
+    .gm-role-admin { background: #fce8e6; color: #d93025; }
+    .gm-role-user { background: #e8f0fe; color: #1a73e8; }
+    .gm-action-cell { display: flex; gap: 8px; align-items: center; }
+    .gm-btn-sm { padding: 6px 14px; font-size: 13px; }
+
+    .gm-alert {
+      padding: 12px 16px; border-radius: var(--gm-radius-sm); font-size: 14px;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .gm-alert-error { background: #fce8e6; color: #d93025; border: 1px solid #f5c6c2; }
+    .gm-alert-success { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
+
+    /* Modal */
+    .gm-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 500; display: none;
+      align-items: flex-start; justify-content: center; padding-top: 120px;
+    }
+    .gm-overlay.show { display: flex; }
+    .gm-modal {
+      background: var(--gm-surface); border-radius: var(--gm-radius); width: 400px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.2); overflow: hidden;
+    }
+    .gm-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid var(--gm-border);
+    }
+    .gm-modal-header h3 { font-size: 18px; font-weight: 600; }
+    .gm-modal-close {
+      width: 36px; height: 36px; border: none; background: none; font-size: 20px;
+      cursor: pointer; border-radius: 50%; color: var(--gm-text-secondary);
+    }
+    .gm-modal-close:hover { background: #f1f3f4; }
+    .gm-modal-body { padding: 24px; }
+    .gm-modal-footer {
+      display: flex; gap: 8px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--gm-border);
+    }
+    .gm-modal-body .gm-input { width: 100%; }
+    .gm-modal-body label { display: block; font-size: 13px; font-weight: 500; color: var(--gm-text-secondary); margin-bottom: 6px; }
+
+    .gm-menu {
+      position: absolute; top: 48px; right: 16px; background: var(--gm-surface);
+      border: 1px solid var(--gm-border); border-radius: var(--gm-radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 8px 0; display: none; z-index: 200;
+      min-width: 180px;
+    }
+    .gm-menu.show { display: block; }
+    .gm-menu a {
+      display: block; padding: 10px 20px; color: var(--gm-text); text-decoration: none;
+      font-size: 14px; transition: var(--gm-transition);
+    }
+    .gm-menu a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+
+    @media (max-width: 720px) {
+      .gm-topbar-inner { padding: 0 16px; }
+      .gm-nav { display: none; }
+      .gm-main { padding: 16px; }
+      .gm-form-row { flex-direction: column; }
+      .gm-form-row .gm-input { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-inner">
-      <div class="nav-brand">
-        <span class="nav-brand-logo"></span>
-        <span class="nav-title">教案管理系统</span>
+  <header class="gm-topbar">
+    <div class="gm-topbar-inner">
+      <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
+      <nav class="gm-nav">
+        <a href="/dashboard">私人空间</a>
+        <a href="/hall">公共大厅</a>
+        <a href="/courses">课程管理</a>
+        <a href="/users" class="active">用户管理</a>
+      </nav>
+      <div class="gm-nav-right">
+        <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
+        <div class="gm-menu" id="userMenu">
+          <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
+          <a href="/logout">退出登录</a>
+        </div>
       </div>
-      <div class="nav-menu">
-        <span class="nav-user">
-          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
-          <span><%= user.displayName %></span>
-        </span>
-        <a href="/dashboard" class="nav-link">私人空间</a>
-        <a href="/hall" class="nav-link">公共大厅</a>
-        <a href="/courses" class="nav-link">课程管理</a>
-        <a href="/users" class="nav-link">用户管理</a>
-        <a href="/logout" class="nav-link nav-link-danger">退出</a>
-      </div>
-      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
-        <span class="nav-toggle-bar"></span>
-      </button>
     </div>
-  </nav>
+  </header>
 
-  <main class="main-content">
-    <div class="page-header">
-      <h2>用户管理</h2>
+  <main class="gm-main">
+    <div class="gm-page-header">
+      <h1>用户管理</h1>
+      <span class="gm-count">共 <%= users.length %> 人</span>
     </div>
 
-    <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
-    <% } %>
-    <% if (success) { %>
-      <div class="alert alert-success"><%= success %></div>
-    <% } %>
+    <% if (error) { %><div class="gm-alert gm-alert-error"><%= error %></div><% } %>
+    <% if (success) { %><div class="gm-alert gm-alert-success"><%= success %></div><% } %>
 
-    <div class="card">
-      <div class="card-header"><h3>添加新用户</h3></div>
-      <div class="card-body">
-        <form action="/users/add" method="POST" class="inline-form-row">
-          <div class="form-group">
-            <input type="text" name="username" placeholder="用户名" required class="form-input" style="width:150px">
+    <div class="gm-card">
+      <div class="gm-card-header">添加新用户</div>
+      <div class="gm-card-body">
+        <form action="/users/add" method="POST">
+          <div class="gm-form-row">
+            <div>
+              <label style="font-size:12px;color:var(--gm-text-muted);margin-bottom:4px;display:block">用户名</label>
+              <input type="text" name="username" required class="gm-input" placeholder="用户名">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--gm-text-muted);margin-bottom:4px;display:block">显示名称</label>
+              <input type="text" name="displayName" class="gm-input" placeholder="显示名称">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--gm-text-muted);margin-bottom:4px;display:block">密码</label>
+              <input type="password" name="password" required class="gm-input" placeholder="密码">
+            </div>
+            <button type="submit" class="gm-btn gm-btn-primary" style="margin-bottom:0">添加用户</button>
           </div>
-          <div class="form-group">
-            <input type="text" name="displayName" placeholder="显示名称" class="form-input" style="width:150px">
-          </div>
-          <div class="form-group">
-            <input type="password" name="password" placeholder="密码" required class="form-input" style="width:150px">
-          </div>
-          <button type="submit" class="btn btn-primary">添加用户</button>
         </form>
       </div>
     </div>
 
-    <div class="card" style="margin-top:20px">
-      <div class="card-header"><h3>用户列表 (<%= users.length %>)</h3></div>
-      <div class="card-body">
-        <div class="table-wrap">
-          <table class="user-table">
+    <div class="gm-card">
+      <div class="gm-card-header">用户列表</div>
+      <div class="gm-card-body" style="padding:0">
+        <div class="gm-table-wrap">
+          <table class="gm-table">
             <thead>
-              <tr>
-                <th>用户名</th>
-                <th>显示名称</th>
-                <th>角色</th>
-                <th>创建时间</th>
-                <th>操作</th>
-              </tr>
+              <tr><th>用户</th><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr>
             </thead>
             <tbody>
               <% users.forEach(function(u) { %>
                 <tr>
-                  <td><strong><%= u.username %></strong></td>
-                  <td><%= u.displayName || '-' %></td>
+                  <td>
+                    <span class="gm-user-avatar-sm"><%= (u.displayName || u.username).charAt(0) %></span>
+                    <%= u.displayName || u.username %>
+                  </td>
+                  <td style="color:var(--gm-text-secondary)"><%= u.username %></td>
                   <td>
                     <% if (u.role === 'admin') { %>
-                      <span class="role-badge role-badge-admin">管理员</span>
+                      <span class="gm-role-badge gm-role-admin">管理员</span>
                     <% } else { %>
-                      <span class="role-badge role-badge-user">普通用户</span>
+                      <span class="gm-role-badge gm-role-user">用户</span>
                     <% } %>
                   </td>
-                  <td><%= formatDate(u.createdAt) %></td>
-                  <td class="action-cell">
-                    <button class="btn btn-sm btn-outline" onclick="showPasswordForm('<%= u.id %>', '<%= u.displayName || u.username %>')">改密码</button>
-                    <% if (u.id !== user.id) { %>
-                      <form action="/users/delete/<%= u.id %>" method="POST" class="inline-form"
-                            onsubmit="return confirm('确定删除用户「<%= u.displayName || u.username %>」吗？')">
-                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                      </form>
-                    <% } %>
+                  <td style="color:var(--gm-text-muted);font-size:13px"><%= formatDate(u.createdAt) %></td>
+                  <td>
+                    <div class="gm-action-cell">
+                      <button class="gm-btn gm-btn-outline gm-btn-sm" onclick="showPwModal('<%= u.id %>', '<%= (u.displayName || u.username).replace(/'/g, "\\'") %>')">改密码</button>
+                      <% if (u.id !== user.id) { %>
+                        <form action="/users/delete/<%= u.id %>" method="POST" class="inline-form"
+                              onsubmit="return confirm('确定删除用户「<%= (u.displayName || u.username).replace(/'/g, "\\'") %>」吗？')">
+                          <button type="submit" class="gm-btn gm-btn-danger gm-btn-sm">删除</button>
+                        </form>
+                      <% } %>
+                    </div>
                   </td>
                 </tr>
               <% }); %>
@@ -105,42 +270,48 @@
         </div>
       </div>
     </div>
-
-    <div class="modal-overlay" id="passwordModal" style="display:none" onclick="if(event.target===this)hidePasswordForm()">
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-header-title">修改密码</div>
-          <button type="button" class="modal-close" onclick="hidePasswordForm()">&times;</button>
-        </div>
-        <form action="" method="POST" id="passwordForm">
-          <div class="modal-body">
-            <p id="passwordUserLabel">用户：</p>
-            <div class="form-group">
-              <label>新密码</label>
-              <input type="password" name="newPassword" required minlength="4" class="form-input">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="hidePasswordForm()">取消</button>
-            <button type="submit" class="btn btn-primary">确认修改</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </main>
 
-  <script src="/js/main.js"></script>
-  <script>
-    function showPasswordForm(userId, displayName) {
-      document.getElementById('passwordForm').action = '/users/password/' + userId;
-      document.getElementById('passwordUserLabel').textContent = '用户：' + displayName;
-      document.getElementById('passwordModal').style.display = 'flex';
-    }
+  <!-- Password Modal -->
+  <div class="gm-overlay" id="pwOverlay" onclick="if(event.target===this)hidePwModal()">
+    <div class="gm-modal">
+      <div class="gm-modal-header">
+        <h3>修改密码</h3>
+        <button class="gm-modal-close" onclick="hidePwModal()">&times;</button>
+      </div>
+      <form action="" method="POST" id="pwForm">
+        <div class="gm-modal-body">
+          <p style="font-size:14px;color:var(--gm-text-secondary);margin-bottom:16px" id="pwLabel">用户：</p>
+          <label>新密码</label>
+          <input type="password" name="newPassword" class="gm-input" required minlength="4">
+        </div>
+        <div class="gm-modal-footer">
+          <button type="button" class="gm-btn gm-btn-outline" onclick="hidePwModal()">取消</button>
+          <button type="submit" class="gm-btn gm-btn-primary">确认修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    function hidePasswordForm() {
-      document.getElementById('passwordModal').style.display = 'none';
-      document.getElementById('passwordForm').reset();
+  <script>
+    document.getElementById('avatarBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('userMenu').classList.toggle('show');
+    });
+    document.addEventListener('click', function() {
+      document.getElementById('userMenu').classList.remove('show');
+    });
+
+    function showPwModal(userId, displayName) {
+      document.getElementById('pwForm').action = '/users/password/' + userId;
+      document.getElementById('pwLabel').textContent = '用户：' + displayName;
+      document.getElementById('pwOverlay').classList.add('show');
+    }
+    function hidePwModal() {
+      document.getElementById('pwOverlay').classList.remove('show');
+      document.getElementById('pwForm').reset();
     }
   </script>
+  <script src="/js/main.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "jiaoan-system",
   "version": "1.0.0",
-  "description": "教案管理系统 - 支持图片视频上传、多用户登录",
+  "description": "《体育与健康》课程教学资源库 - 支持图片视频上传、多用户登录",
   "main": "server.js",
   "engines": {
     "node": ">=20"
@@ -18,6 +18,7 @@
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "multer": "^1.4.5-lts.1",
+    "ssh2": "^1.17.0",
     "uuid": "^9.0.0"
   }
 }

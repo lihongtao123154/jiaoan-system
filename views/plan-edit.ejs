@@ -3,254 +3,524 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= plan ? '编辑' : '新建' %>教案 - 教案管理系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title><%= plan ? '编辑' : '新建' %>教案 - 《体育与健康》课程教学资源库</title>
   <link rel="stylesheet" href="/css/style.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.css" rel="stylesheet">
+  <style>
+    :root {
+      --gm-primary: #1a73e8;
+      --gm-primary-dark: #1557b0;
+      --gm-primary-light: #e8f0fe;
+      --gm-surface: #fff;
+      --gm-bg: #f8f9fa;
+      --gm-text: #202124;
+      --gm-text-secondary: #5f6368;
+      --gm-text-muted: #9aa0a6;
+      --gm-border: #dadce0;
+      --gm-radius: 16px;
+      --gm-radius-sm: 8px;
+      --gm-transition: all 0.2s cubic-bezier(0.2,0,0,1);
+    }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--gm-bg); color: var(--gm-text); min-height: 100vh; font-size: 14px;
+    }
+    .gm-topbar {
+      background: var(--gm-surface); border-bottom: 1px solid var(--gm-border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .gm-topbar-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; gap: 24px;
+    }
+    .gm-logo { font-size: 20px; font-weight: 600; color: var(--gm-text); text-decoration: none; letter-spacing: -0.3px; white-space: nowrap; }
+    .gm-logo span { color: var(--gm-primary); }
+    .gm-nav { display: flex; align-items: center; gap: 4px; flex: 1; margin-left: 16px; }
+    .gm-nav a {
+      padding: 8px 14px; border-radius: 24px; font-size: 14px; font-weight: 500;
+      color: var(--gm-text-secondary); text-decoration: none; transition: var(--gm-transition);
+    }
+    .gm-nav a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+    .gm-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .gm-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--gm-primary-light);
+      color: var(--gm-primary); display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--gm-transition);
+    }
+    .gm-avatar:hover { box-shadow: 0 0 0 4px rgba(26,115,232,0.12); }
+    .gm-menu {
+      position: absolute; top: 48px; right: 16px; background: var(--gm-surface);
+      border: 1px solid var(--gm-border); border-radius: var(--gm-radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 8px 0; display: none; z-index: 200;
+      min-width: 180px;
+    }
+    .gm-menu.show { display: block; }
+    .gm-menu a { display: block; padding: 10px 20px; color: var(--gm-text); text-decoration: none; font-size: 14px; }
+    .gm-menu a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
 
+    .gm-main { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .gm-page-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+    }
+    .gm-page-header h2 { font-size: 24px; font-weight: 600; margin: 0; }
+    .gm-page-header .gm-spacer { flex: 1; }
+
+    .gm-card {
+      background: var(--gm-surface); border-radius: var(--gm-radius);
+      border: 1px solid var(--gm-border); padding: 24px; margin-bottom: 20px;
+    }
+    .gm-card-title {
+      font-size: 16px; font-weight: 600; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .gm-card-title .icon { font-size: 20px; }
+
+    .gm-field { margin-bottom: 16px; }
+    .gm-field:last-child { margin-bottom: 0; }
+    .gm-field label {
+      display: block; font-size: 13px; font-weight: 600; color: var(--gm-text-secondary);
+      margin-bottom: 6px;
+    }
+    .gm-field .required { color: #d93025; }
+    .gm-field .hint {
+      font-size: 12px; color: var(--gm-text-muted); margin-top: 4px; font-weight: 400;
+    }
+    .gm-input {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--gm-border);
+      border-radius: var(--gm-radius-sm); font-size: 14px; font-family: inherit;
+      outline: none; transition: var(--gm-transition); box-sizing: border-box;
+      background: var(--gm-surface);
+    }
+    .gm-input:focus { border-color: var(--gm-primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
+    .gm-input-lg { padding: 12px 16px; font-size: 16px; }
+    .gm-select {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--gm-border);
+      border-radius: var(--gm-radius-sm); font-size: 14px; font-family: inherit;
+      outline: none; background: var(--gm-surface); cursor: pointer; box-sizing: border-box;
+    }
+    .gm-select:focus { border-color: var(--gm-primary); }
+
+    .gm-row { display: flex; gap: 16px; }
+    .gm-row .gm-field { flex: 1; }
+
+    .gm-btn {
+      padding: 10px 24px; border: none; border-radius: 24px; font-size: 14px; font-weight: 500;
+      font-family: inherit; cursor: pointer; transition: var(--gm-transition);
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    }
+    .gm-btn-primary { background: var(--gm-primary); color: #fff; }
+    .gm-btn-primary:hover { background: var(--gm-primary-dark); box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+    .gm-btn-outline { background: transparent; color: var(--gm-primary); border: 1px solid var(--gm-border); }
+    .gm-btn-outline:hover { background: var(--gm-primary-light); border-color: var(--gm-primary); }
+    .gm-btn-lg { padding: 12px 32px; font-size: 15px; }
+    .gm-btn-danger { color: #d93025; }
+    .gm-btn-danger:hover { background: #fce8e6; }
+    .gm-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .gm-actions {
+      display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;
+    }
+
+    .quill-wrap { border: 1px solid var(--gm-border); border-radius: var(--gm-radius-sm); }
+    .quill-wrap .ql-toolbar {
+      border: none; border-bottom: 1px solid var(--gm-border);
+      border-radius: var(--gm-radius-sm) var(--gm-radius-sm) 0 0;
+    }
+    .quill-wrap .ql-container {
+      border: none; font-family: inherit; font-size: 15px;
+      border-radius: 0 0 var(--gm-radius-sm) var(--gm-radius-sm);
+    }
+    .quill-wrap .ql-editor { min-height: 350px; }
+
+    .upload-zone {
+      border: 2px dashed var(--gm-border); border-radius: var(--gm-radius-sm);
+      padding: 32px; text-align: center; cursor: pointer; transition: var(--gm-transition);
+      background: #fafbfc;
+    }
+    .upload-zone:hover { border-color: var(--gm-primary); background: var(--gm-primary-light); }
+    .upload-zone.drag-over { border-color: var(--gm-primary); background: var(--gm-primary-light); }
+    .upload-zone-label { font-size: 15px; color: var(--gm-text-secondary); margin-bottom: 4px; }
+    .upload-zone-hint { font-size: 12px; color: var(--gm-text-muted); }
+
+    .progress-bar { height: 4px; background: #e8eaed; border-radius: 2px; overflow: hidden; margin-top: 12px; }
+    .progress-fill { height: 100%; background: var(--gm-primary); transition: width 0.3s; width: 0; }
+    .progress-text { font-size: 12px; color: var(--gm-text-muted); margin-top: 4px; }
+
+    .file-list { margin-top: 12px; }
+    .file-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      background: #f8f9fa; border-radius: var(--gm-radius-sm); margin-bottom: 4px;
+    }
+    .file-item-type { font-size: 18px; flex-shrink: 0; }
+    .file-item-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-item-size { font-size: 12px; color: var(--gm-text-muted); flex-shrink: 0; }
+    .file-item-remove {
+      width: 24px; height: 24px; border: none; background: none; font-size: 16px;
+      cursor: pointer; color: var(--gm-text-muted); border-radius: 50%;
+    }
+    .file-item-remove:hover { background: #e8eaed; color: #d93025; }
+
+    .status-msg {
+      padding: 8px 12px; border-radius: var(--gm-radius-sm); font-size: 13px; margin-top: 4px;
+    }
+    .status-success { background: #e6f4ea; color: #137333; }
+    .status-error { background: #fce8e6; color: #c5221f; }
+
+    .cover-upload { text-align: center; }
+    .cover-upload img {
+      max-width: 100%; max-height: 200px; border-radius: var(--gm-radius-sm);
+      margin-bottom: 12px; box-shadow: var(--gm-shadow);
+    }
+    .cover-actions { display: flex; gap: 8px; justify-content: center; }
+
+    .switch-row {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    }
+    .switch-slider {
+      width: 36px; height: 20px; background: #ccc; border-radius: 10px;
+      position: relative; transition: var(--gm-transition); display: inline-block;
+    }
+    .switch-slider::after {
+      content: ''; position: absolute; width: 16px; height: 16px;
+      border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: var(--gm-transition);
+    }
+    input:checked + .switch-text + .switch-row .switch-slider { background: var(--gm-primary); }
+    input:checked + .switch-text + .switch-row .switch-slider::after { left: 18px; }
+    .switch-status { font-size: 13px; color: var(--gm-text-muted); }
+    input:checked + .switch-text + .switch-row .switch-status { color: var(--gm-primary); }
+    .switch-text { font-size: 14px; font-weight: 500; cursor: pointer; }
+
+    .tag-grid {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    }
+    .tag-option {
+      cursor: pointer; display: inline-flex; align-items: center;
+    }
+    .tag-option input { display: none; }
+    .tag-option span {
+      padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 500;
+      color: #fff; opacity: 0.6; transition: var(--gm-transition);
+    }
+    .tag-option input:checked + span { opacity: 1; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+
+    .gm-alert {
+      padding: 12px 16px; border-radius: var(--gm-radius-sm); font-size: 14px;
+      background: #fce8e6; color: #c5221f; margin-bottom: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .gm-topbar-inner { padding: 0 16px; }
+      .gm-nav { display: none; }
+      .gm-main { padding: 16px; }
+      .gm-card { padding: 16px; border-radius: 12px; }
+      .gm-row { flex-direction: column; gap: 0; }
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-inner">
-      <div class="nav-brand">
-        <span class="nav-brand-logo"></span>
-        <span class="nav-title">教案管理系统</span>
+  <header class="gm-topbar">
+    <div class="gm-topbar-inner">
+      <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
+      <nav class="gm-nav">
+        <a href="/dashboard">私人空间</a>
+        <a href="/hall">公共大厅</a>
+        <a href="/courses">课程管理</a>
+      </nav>
+      <div class="gm-nav-right">
+        <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
+        <div class="gm-menu" id="userMenu">
+          <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
+          <a href="/dashboard">私人空间</a>
+          <a href="/logout">退出登录</a>
+        </div>
       </div>
-      <div class="nav-menu">
-        <span class="nav-user">
-          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
-          <span><%= user.displayName %></span>
-        </span>
-        <a href="/dashboard" class="nav-link">私人空间</a>
-        <a href="/hall" class="nav-link">公共大厅</a>
-        <a href="/logout" class="nav-link nav-link-danger">退出</a>
-      </div>
-      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
-        <span class="nav-toggle-bar"></span>
-      </button>
     </div>
-  </nav>
+  </header>
 
-  <main class="main-content">
-    <div class="form-page">
-      <div class="page-header">
-        <h2><%= plan ? '编辑教案' : '新建教案' %></h2>
-      </div>
+  <main class="gm-main">
+    <div class="gm-page-header">
+      <h2><%= plan ? '编辑教案' : '新建教案' %></h2>
+      <div class="gm-spacer"></div>
+      <a href="<%= plan ? '/plan/' + plan.id : '/dashboard' %>" class="gm-btn gm-btn-outline">取消</a>
+    </div>
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
+    <% if (error) { %>
+      <div class="gm-alert"><%= error %></div>
+    <% } %>
 
-      <form action="<%= plan ? '/plan/' + plan.id : '/plan' %>" method="POST" class="plan-form" id="planForm">
-        <!-- 第一步：基本信息 -->
-        <div class="form-section">
-          <div class="section-label">📝 基本信息</div>
+    <form action="<%= plan ? '/plan/' + plan.id : '/plan' %>" method="POST" id="planForm">
+      <div class="gm-card">
+        <div class="gm-card-title"><span class="icon">📝</span> 基本信息</div>
 
-          <div class="form-group">
-            <label for="title">教案标题 <span class="required">*</span></label>
-            <input type="text" id="title" name="title" required
-                   value="<%= plan ? plan.title : '' %>"
-                   placeholder="给你的教案起个名字，如：分数的初步认识" class="form-input form-input-lg">
+        <div class="gm-field">
+          <label>教案标题 <span class="required">*</span></label>
+          <input type="text" name="title" required class="gm-input gm-input-lg"
+                 value="<%= plan ? plan.title : '' %>"
+                 placeholder="例：篮球原地运球技术教学">
+          <div class="hint">给这节课起个清晰的名字，方便其他老师查找</div>
+        </div>
+
+        <div class="gm-field">
+          <label>教案内容</label>
+          <div class="hint" style="margin-bottom:8px">在这里编写详细的教案内容，支持文字排版、插入图片和链接</div>
+          <div class="quill-wrap">
+            <div id="editorContainer" style="min-height:350px"><%- plan ? plan.content : '' %></div>
           </div>
+          <input type="hidden" name="content" id="contentInput">
+        </div>
 
-          <div class="form-group">
-            <label>教案内容</label>
-            <p class="form-help">在这里写下教案的详细内容，支持富文本排版</p>
-            <div id="editorContainer" class="form-input" style="height:400px"><%= plan ? plan.content : '' %></div>
-            <input type="hidden" name="content" id="contentInput">
+        <div class="gm-row">
+          <div class="gm-field">
+            <label>课程组 <span class="required">*</span></label>
+            <select name="sportGroup" id="sportGroup" class="gm-select">
+              <option value="">请选择课程组</option>
+              <option value="体育1" <%= (plan && plan.sportGroup === '体育1') || (!plan && preset && preset.sportGroup === '体育1') ? 'selected' : '' %>>体育1</option>
+              <option value="体育2" <%= (plan && plan.sportGroup === '体育2') || (!plan && preset && preset.sportGroup === '体育2') ? 'selected' : '' %>>体育2</option>
+              <option value="体育3" <%= (plan && plan.sportGroup === '体育3') || (!plan && preset && preset.sportGroup === '体育3') ? 'selected' : '' %>>体育3</option>
+              <option value="体育4" <%= (plan && plan.sportGroup === '体育4') || (!plan && preset && preset.sportGroup === '体育4') ? 'selected' : '' %>>体育4</option>
+            </select>
+            <div class="hint">选择教案所属的课程组</div>
           </div>
+          <div class="gm-field">
+            <label>运动项目 <span class="required">*</span></label>
+            <select name="sportName" id="sportName" class="gm-select">
+              <option value="">请先选择课程组</option>
+            </select>
+            <div class="hint">选择具体的运动项目</div>
+          </div>
+        </div>
 
+        <div class="gm-row">
+          <div class="gm-field">
+            <label>课时序号</label>
+            <input type="number" name="sessionNumber" class="gm-input"
+                   value="<%= plan ? plan.sessionNumber || '' : '' %>"
+                   placeholder="如 1、2、3" min="1" max="30">
+            <div class="hint">这节课是第几课时</div>
+          </div>
+          <div class="gm-field">
+            <label>课时名称</label>
+            <input type="text" name="sessionName" class="gm-input"
+                   value="<%= plan ? plan.sessionName : '' %>"
+                   placeholder="例：第1课时">
+            <div class="hint">可选的课时副标题</div>
+          </div>
           <% if (courses && courses.length > 0) { %>
-            <div class="form-row">
-              <div class="form-group" style="flex:1">
-                <label for="courseId">所属课程</label>
-                <select id="courseId" name="courseId" class="form-input">
-                  <option value="">暂不选择</option>
-                  <% courses.forEach(function(c) { %>
-                    <option value="<%= c.id %>" <%= plan && plan.courseId === c.id ? 'selected' : '' %>><%= c.name %></option>
-                  <% }); %>
-                </select>
-              </div>
-              <div class="form-group" style="flex:1">
-                <label for="sessionName">课时名称</label>
-                <input type="text" id="sessionName" name="sessionName"
-                       value="<%= plan ? plan.sessionName : '' %>"
-                       placeholder="如：第1课时、第2课时" class="form-input">
-              </div>
-            </div>
-          <% } %>
-
-          <% if (allTags && allTags.length > 0) { %>
-            <div class="form-group">
-              <label>标签</label>
-              <p class="form-help">选择一个或多个标签，方便在首页按标签筛选</p>
-              <div class="tag-selector">
-                <% allTags.forEach(function(t) { %>
-                  <label class="tag-option">
-                    <input type="checkbox" name="tagIds" value="<%= t.id %>"
-                      <%= planTags && planTags.some(function(pt) { return pt.id === t.id }) ? 'checked' : '' %>>
-                    <span style="background:<%= t.color || '#3498db' %>"><%= t.name %></span>
-                  </label>
-                <% }); %>
-              </div>
-            </div>
+          <div class="gm-field">
+            <label>所属课程</label>
+            <select name="courseId" class="gm-select">
+              <option value="">暂不选择</option>
+              <% courses.forEach(function(c) { %>
+                <option value="<%= c.id %>" <%= plan && plan.courseId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </select>
+          </div>
           <% } %>
         </div>
 
-        <!-- 第三步：附件与封面 -->
-        <div class="form-section">
-          <div class="section-label">🖼️ 附件与封面</div>
+        <% if (allTags && allTags.length > 0) { %>
+        <div class="gm-field">
+          <label>标签</label>
+          <div class="hint" style="margin-bottom:8px">选择一个或多个标签，方便在首页按标签筛选</div>
+          <div class="tag-grid">
+            <% allTags.forEach(function(t) { %>
+              <label class="tag-option">
+                <input type="checkbox" name="tagIds" value="<%= t.id %>"
+                  <%= planTags && planTags.some(function(pt) { return pt.id === t.id }) ? 'checked' : '' %>>
+                <span style="background:<%= t.color || '#3498db' %>"><%= t.name %></span>
+              </label>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+      </div>
 
-          <div class="form-group">
-            <label>附件资源</label>
-            <p class="form-help">支持图片、视频、PDF、PPT、Word、Excel、压缩包等，单文件最大 3GB</p>
+      <div class="gm-card">
+        <div class="gm-card-title"><span class="icon">📎</span> 附件资源</div>
 
-            <div class="upload-zone" id="uploadZone">
-              <div class="upload-zone-label">把文件拖到这里上传</div>
-              <div class="upload-zone-hint">或点击选择文件</div>
-              <input type="file" id="fileInput" multiple accept="*" hidden>
-              <div class="upload-progress" id="uploadProgress" style="display:none">
-                <div class="progress-bar">
-                  <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">上传中...</div>
+        <div class="gm-field">
+          <label>上传附件</label>
+          <div class="hint" style="margin-bottom:8px">支持图片、视频、PDF、PPT、Word 等文件，单个最大 3GB</div>
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-zone-label">点击或拖拽文件到此处上传</div>
+            <div class="upload-zone-hint">支持几乎所有常见格式</div>
+            <input type="file" id="fileInput" multiple accept="*" hidden>
+            <div class="progress-bar" style="display:none" id="progressWrap">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="file-list" id="fileList">
+          <% if (plan && plan.files) { %>
+            <% plan.files.forEach(function(file) { %>
+              <div class="file-item" data-filename="<%= file.filename %>" data-type="<%= file.type %>">
+                <span class="file-item-type"><%= file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎬' : '📄' %></span>
+                <span class="file-item-name"><%= file.originalName %></span>
+                <span class="file-item-size"><%= formatFileSize(file.size) %></span>
+                <button type="button" class="file-item-remove" onclick="removeFile(this)">&times;</button>
               </div>
-            </div>
-
-            <div class="upload-status" id="uploadStatus"></div>
-
-            <div class="file-list" id="fileList">
-              <% if (plan && plan.files) { %>
-                <% plan.files.forEach(function(file) { %>
-                  <div class="file-item" data-filename="<%= file.filename %>" data-type="<%= file.type %>">
-                    <span class="file-item-type"><%= file.type === 'image' ? '📷' : file.type === 'video' ? '🎬' : '📄' %></span>
-                    <span class="file-item-name"><%= file.originalName %></span>
-                    <span class="file-item-size"><%= formatFileSize(file.size) %></span>
-                    <button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>
-                  </div>
-                <% }); %>
-              <% } %>
-            </div>
-
-            <input type="hidden" name="fileList" id="fileListInput"
-                   value='<%- plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
-          </div>
-
-          <div class="form-group">
-            <label>封面图片</label>
-            <p class="form-help">上传一张封面图，在首页会显示在教案卡片上，让教案更醒目</p>
-            <div class="cover-upload" id="coverUpload">
-              <% if (plan && plan.coverUrl) { %>
-                <img src="<%= plan.coverUrl %>" class="cover-preview" id="coverPreview">
-              <% } else { %>
-                <img src="" class="cover-preview" id="coverPreview" style="display:none">
-              <% } %>
-              <div class="cover-actions">
-                <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('coverInput').click()">选择图片</button>
-                <button type="button" class="btn btn-sm btn-danger" id="removeCoverBtn" style="display:<%= plan && plan.coverUrl ? 'inline-block' : 'none' %>" onclick="removeCover()">移除封面</button>
-              </div>
-              <input type="file" id="coverInput" accept="image/*" hidden>
-              <input type="hidden" name="coverUrl" id="coverUrlInput" value="<%= plan ? plan.coverUrl : '' %>">
-            </div>
-          </div>
+            <% }); %>
+          <% } %>
         </div>
 
-        <!-- 第四步：分享设置 -->
-        <div class="form-section">
-          <div class="section-label">🌐 分享设置</div>
+        <input type="hidden" name="fileList" id="fileListInput"
+               value='<%- plan && plan.files ? JSON.stringify(plan.files).replace(/'/g, "&#39;") : "[]" %>'>
 
-          <div class="form-group">
-            <label class="switch-label">
-              <input type="checkbox" name="isPublic" value="1"
-                <%= plan && plan.isPublic == 1 ? 'checked' : '' %>>
-              <span class="switch-text">允许其他用户查看此教案</span>
-              <span class="switch-row">
-                <span class="switch-slider"></span>
-                <span class="switch-status"></span>
-              </span>
-            </label>
-            <div class="hint" style="margin-top:4px"><span class="hint-icon">i</span> 开启后教案会出现在「公共大厅」供其他用户浏览、收藏和评论</div>
+        <div id="uploadStatus"></div>
+      </div>
+
+      <div class="gm-card">
+        <div class="gm-card-title"><span class="icon">🖼️</span> 封面图片</div>
+        <div class="gm-field">
+          <div class="hint" style="margin-bottom:8px">上传一张封面图，让教案在首页更醒目</div>
+          <div class="cover-upload">
+            <% if (plan && plan.coverUrl) { %>
+              <img src="<%= plan.coverUrl %>" id="coverPreview">
+            <% } else { %>
+              <img src="" id="coverPreview" style="display:none">
+            <% } %>
+            <div class="cover-actions">
+              <button type="button" class="gm-btn gm-btn-outline" onclick="document.getElementById('coverInput').click()">选择图片</button>
+              <button type="button" class="gm-btn gm-btn-danger" id="removeCoverBtn"
+                style="display:<%= plan && plan.coverUrl ? 'inline-flex' : 'none' %>" onclick="removeCover()">移除封面</button>
+            </div>
+            <input type="file" id="coverInput" accept="image/*" hidden>
+            <input type="hidden" name="coverUrl" id="coverUrlInput" value="<%= plan ? plan.coverUrl : '' %>">
           </div>
         </div>
+      </div>
 
-        <!-- 提交 -->
-        <div class="form-actions">
-          <a href="/dashboard" class="btn btn-outline btn-lg">取消</a>
-          <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">
-            <%= plan ? '保存修改' : '创建教案' %>
-          </button>
+      <div class="gm-card">
+        <div class="gm-card-title"><span class="icon">🌐</span> 分享设置</div>
+        <div class="gm-field">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
+            <input type="checkbox" name="isPublic" value="1" style="width:18px;height:18px;accent-color:var(--gm-primary)"
+              <%= plan && plan.isPublic == 1 ? 'checked' : '' %>>
+            <span style="font-size:14px;font-weight:500">允许其他用户查看此教案</span>
+          </label>
+          <div class="hint" style="margin-top:6px">开启后教案会出现在「公共大厅」，其他用户可以浏览、收藏和评论</div>
         </div>
-      </form>
-    </div>
+      </div>
+
+      <div class="gm-actions">
+        <a href="<%= plan ? '/plan/' + plan.id : '/dashboard' %>" class="gm-btn gm-btn-outline">取消</a>
+        <button type="submit" class="gm-btn gm-btn-primary gm-btn-lg" id="saveBtn">
+          <%= plan ? '保存修改' : '创建教案' %>
+        </button>
+      </div>
+    </form>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
   <script src="/js/main.js"></script>
   <script>
-    // Quill 编辑器
-    const quill = new Quill('#editorContainer', {
+    var useCOS = <%= useCOS %>;
+
+    // === 用户菜单 ===
+    document.getElementById('avatarBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('userMenu').classList.toggle('show');
+    });
+    document.addEventListener('click', function() { document.getElementById('userMenu').classList.remove('show'); });
+
+    // === 级联下拉（从 hierarchy API 加载） ===
+    var groupSelect = document.getElementById('sportGroup');
+    var sportSelect = document.getElementById('sportName');
+    var savedSport = '<%= plan ? (plan.sportName || "") : (preset ? preset.sportName : "") %>';
+
+    function updateSports() {
+      var g = groupSelect.value;
+      sportSelect.innerHTML = '<option value="">-- 选择项目 --</option>';
+      if (!g) return;
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/sports/hierarchy?scope=all', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4 || xhr.status !== 200) return;
+        var data = JSON.parse(xhr.responseText);
+        var sports = data[g];
+        if (!sports) return;
+        var names = Object.keys(sports);
+        for (var i = 0; i < names.length; i++) {
+          var sel = savedSport === names[i] ? ' selected' : '';
+          sportSelect.innerHTML += '<option value="' + names[i] + '"' + sel + '>' + names[i] + '</option>';
+        }
+        if (savedSport) savedSport = '';
+      };
+      xhr.send();
+    }
+    groupSelect.addEventListener('change', updateSports);
+    updateSports();
+
+    // === Quill 编辑器 ===
+    var quill = new Quill('#editorContainer', {
       theme: 'snow',
       modules: {
         toolbar: [
           [{ header: [1, 2, 3, false] }],
           ['bold', 'italic', 'underline', 'strike'],
           [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ indent: '-1' }, { indent: '+1' }],
           [{ align: [] }],
           ['blockquote', 'code-block'],
           [{ color: [] }, { background: [] }],
-          ['link'],
+          ['link', 'image'],
           ['clean']
         ]
       }
     });
 
-    // 封面上传
+    quill.getModule('toolbar').addHandler('image', function() {
+      var input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*';
+      input.onchange = function() {
+        if (!this.files[0]) return;
+        var file = this.files[0];
+        if (file.size > 50 * 1024 * 1024) { alert('图片不能超过50MB'); return; }
+        uploadToCOS(file, null, function(err, fileInfo) {
+          if (err) { alert(err.message); return; }
+          var range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'image', fileInfo.url);
+        });
+      };
+      input.click();
+    });
+
+    // === 封面上传 ===
     document.getElementById('coverInput').addEventListener('change', function() {
-      if (this.files.length === 0) return;
-      const file = this.files[0];
-      if (file.size > 5 * 1024 * 1024) { alert('封面图不能超过 5MB'); return; }
-      const formData = new FormData();
-      formData.append('file', file);
-      const xhr = new XMLHttpRequest();
-      xhr.addEventListener('load', function() {
-        if (xhr.status === 200) {
-          try {
-            const resp = JSON.parse(xhr.responseText);
-            if (resp.success) {
-              document.getElementById('coverUrlInput').value = resp.file.url || '/uploads/images/' + resp.file.filename;
-              document.getElementById('coverPreview').src = resp.file.url || '/uploads/images/' + resp.file.filename;
-              document.getElementById('coverPreview').style.display = 'block';
-              document.getElementById('removeCoverBtn').style.display = 'inline-block';
-            } else { alert(resp.error || '上传失败'); }
-          } catch(e) { alert('上传失败'); }
-        } else { alert('上传失败'); }
+      if (!this.files.length) return;
+      var file = this.files[0];
+      if (file.size > 10 * 1024 * 1024) { alert('封面图不能超过10MB'); return; }
+      uploadToCOS(file, null, function(err, fileInfo) {
+        if (err) { alert(err.message); return; }
+        document.getElementById('coverUrlInput').value = fileInfo.url;
+        var prev = document.getElementById('coverPreview');
+        prev.src = fileInfo.url;
+        prev.style.display = '';
+        document.getElementById('removeCoverBtn').style.display = 'inline-flex';
       });
-      xhr.open('POST', '<%= useCOS ? "/cos/upload" : "/upload" %>', true);
-      xhr.send(formData);
     });
 
     function removeCover() {
       document.getElementById('coverUrlInput').value = '';
-      document.getElementById('coverPreview').src = '';
-      document.getElementById('coverPreview').style.display = 'none';
+      var prev = document.getElementById('coverPreview');
+      prev.src = '';
+      prev.style.display = 'none';
       document.getElementById('removeCoverBtn').style.display = 'none';
     }
 
+    // === 表单提交 ===
     document.getElementById('planForm').addEventListener('submit', function(e) {
       document.getElementById('contentInput').value = quill.root.innerHTML;
-      const btn = document.getElementById('saveBtn');
+      var btn = document.getElementById('saveBtn');
       btn.disabled = true;
       btn.textContent = '保存中...';
     });
 
-    // 文件上传
-    const uploadedFiles = (function() {
-      try {
-        const input = document.getElementById('fileListInput');
-        return JSON.parse(input.value || '[]');
-      } catch(e) { return []; }
+    // === 文件上传 ===
+    var uploadedFiles = (function() {
+      try { return JSON.parse(document.getElementById('fileListInput').value || '[]'); }
+      catch(e) { return []; }
     })();
 
     function updateFileListInput() {
@@ -260,24 +530,24 @@
     function addFileItem(file) {
       uploadedFiles.push(file);
       updateFileListInput();
-      const container = document.getElementById('fileList');
-      const div = document.createElement('div');
+      var container = document.getElementById('fileList');
+      var div = document.createElement('div');
       div.className = 'file-item';
       div.dataset.filename = file.filename;
       div.dataset.type = file.type;
       div.innerHTML =
-        '<span class="file-item-type">' + (file.type === 'image' ? '图片' : file.type === 'video' ? '视频' : '文档') + '</span>' +
+        '<span class="file-item-type">' + (file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎬' : '📄') + '</span>' +
         '<span class="file-item-name">' + file.originalName + '</span>' +
         '<span class="file-item-size">' + formatFileSize(file.size) + '</span>' +
-        '<button type="button" class="file-item-remove" onclick="removeFile(this)" title="移除">&times;</button>';
+        '<button type="button" class="file-item-remove" onclick="removeFile(this)">&times;</button>';
       container.appendChild(div);
     }
 
     function removeFile(btn) {
-      const item = btn.closest('.file-item');
-      const filename = item.dataset.filename;
-      const type = item.dataset.type;
-      const idx = uploadedFiles.findIndex(function(f) { return f.filename === filename; });
+      var item = btn.closest('.file-item');
+      var filename = item.dataset.filename;
+      var type = item.dataset.type;
+      var idx = uploadedFiles.findIndex(function(f) { return f.filename === filename; });
       if (idx !== -1) uploadedFiles.splice(idx, 1);
       updateFileListInput();
       item.remove();
@@ -288,93 +558,66 @@
       }).catch(function() {});
     }
 
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput = document.getElementById('fileInput');
-
-    uploadZone.addEventListener('click', function() { fileInput.click(); });
-
-    uploadZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.classList.add('drag-over');
-    });
-
-    uploadZone.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      this.classList.remove('drag-over');
-    });
-
-    uploadZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.classList.remove('drag-over');
-      if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
-    });
-
-    fileInput.addEventListener('change', function() {
-      if (this.files.length > 0) { uploadFiles(this.files); this.value = ''; }
-    });
-
-    function getFileType(file) {
-      if (file.type.startsWith('image/')) return 'image';
-      if (file.type.startsWith('video/')) return 'video';
-      return 'document';
-    }
-
-    function uploadFiles(files) {
-      const progress = document.getElementById('uploadProgress');
-      const progressFill = document.getElementById('progressFill');
-      const progressText = document.getElementById('progressText');
-
-      Array.from(files).forEach(function(file) {
-        if (file.size > 3 * 1024 * 1024 * 1024) {
-          showStatus(file.name + ' 超过 3GB 限制', 'error');
-          return;
-        }
-        progress.style.display = 'block';
-        uploadZone.classList.add('uploading');
-
-        var formData = new FormData();
-        formData.append('file', file);
-
+    function uploadToCOS(file, onProgress, callback) {
+      if (useCOS) {
+        fetch('/cos/presign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, contentType: file.type })
+        }).then(function(r) { return r.json(); })
+        .then(function(presign) {
+          if (presign.error) { callback(new Error(presign.error)); return; }
+          var xhr = new XMLHttpRequest();
+          xhr.open('PUT', presign.url, true);
+          xhr.setRequestHeader('Content-Type', presign.mimeType);
+          if (onProgress) xhr.upload.addEventListener('progress', onProgress);
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              fetch('/cos/done', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cosKey: presign.cosKey, filename: presign.filename, originalName: presign.originalName, type: presign.type, mimeType: presign.mimeType, size: file.size })
+              }).then(function(r) { return r.json(); })
+              .then(function(done) { callback(null, done.file); })
+              .catch(function(e) { callback(e); });
+            } else { callback(new Error('上传失败: ' + xhr.status)); }
+          };
+          xhr.onerror = function() { callback(new Error('网络错误')); };
+          xhr.send(file);
+        }).catch(function(e) { callback(e); });
+      } else {
+        var formData = new FormData(); formData.append('file', file);
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '<%= useCOS ? "/cos/upload" : "/upload" %>', true);
-
-        xhr.upload.addEventListener('progress', function(e) {
-          if (e.lengthComputable) {
-            var pct = parseInt(e.loaded / e.total * 100, 10);
-            progressFill.style.width = pct + '%';
-            progressText.textContent = file.name + ' - ' + pct + '%';
-          }
-        });
-
-        xhr.addEventListener('load', function() {
-          progress.style.display = 'none';
-          uploadZone.classList.remove('uploading');
+        xhr.open('POST', '/upload', true);
+        if (onProgress) xhr.upload.addEventListener('progress', onProgress);
+        xhr.onload = function() {
           try {
             var resp = JSON.parse(xhr.responseText);
-            if (resp.success) {
-              addFileItem(resp.file);
-              showStatus(file.name + ' 上传成功', 'success');
-            } else {
-              showStatus(file.name + ': ' + (resp.error || '上传失败'), 'error');
-            }
-          } catch(e) {
-            showStatus(file.name + ': 上传失败', 'error');
-          }
-        });
-
-        xhr.addEventListener('error', function() {
-          progress.style.display = 'none';
-          uploadZone.classList.remove('uploading');
-          showStatus(file.name + ': 网络错误', 'error');
-        });
-
+            if (resp.success) callback(null, resp.file);
+            else callback(new Error(resp.error || '上传失败'));
+          } catch(e) { callback(new Error('上传失败')); }
+        };
+        xhr.onerror = function() { callback(new Error('网络错误')); };
         xhr.send(formData);
-      });
+      }
     }
 
+    var uploadZone = document.getElementById('uploadZone');
+    var fileInput = document.getElementById('fileInput');
+    uploadZone.addEventListener('click', function() { fileInput.click(); });
+    uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('drag-over'); });
+    uploadZone.addEventListener('drop', function(e) {
+      e.preventDefault(); this.classList.remove('drag-over');
+      if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', function() {
+      if (this.files.length) { uploadFiles(this.files); this.value = ''; }
+    });
+
     function showStatus(msg, type) {
-      const status = document.getElementById('uploadStatus');
-      const div = document.createElement('div');
+      var status = document.getElementById('uploadStatus');
+      var div = document.createElement('div');
       div.className = 'status-msg status-' + (type || 'info');
       div.textContent = msg;
       status.appendChild(div);
@@ -382,6 +625,27 @@
         div.style.opacity = '0';
         setTimeout(function() { div.remove(); }, 500);
       }, 4000);
+    }
+
+    function uploadFiles(files) {
+      Array.from(files).forEach(function(file) {
+        if (file.size > 5 * 1024 * 1024 * 1024) { showStatus(file.name + ' 超过5GB限制', 'error'); return; }
+        var progressWrap = document.getElementById('progressWrap');
+        var progressFill = document.getElementById('progressFill');
+        var progressText = document.getElementById('progressText');
+        progressWrap.style.display = ''; progressText.style.display = '';
+        uploadToCOS(file, function(e) {
+          if (e.lengthComputable) {
+            progressFill.style.width = parseInt(e.loaded / e.total * 100, 10) + '%';
+            progressText.textContent = file.name + ' - ' + parseInt(e.loaded / e.total * 100, 10) + '%';
+          }
+        }, function(err, fileInfo) {
+          progressWrap.style.display = 'none'; progressText.style.display = 'none';
+          progressFill.style.width = '0';
+          if (err) { showStatus(file.name + ': ' + err.message, 'error'); }
+          else { addFileItem(fileInfo); showStatus(file.name + ' 上传成功', 'success'); }
+        });
+      });
     }
   </script>
 </body>

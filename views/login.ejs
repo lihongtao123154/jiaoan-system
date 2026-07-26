@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>登录 - 教案管理系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>登录 - 《体育与健康》课程教学资源库</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       min-height: 100vh; display: flex;
       background: #f5f3f0;
     }
@@ -90,7 +88,6 @@
     .char-purple.happy .mouth { width: 24px; height: 12px; }
     .char-black.happy .mouth { width: 14px; height: 10px; border-bottom-color: rgba(255,255,255,0.8); }
     .char-yellow.happy .mouth { border-radius: 0 0 10px 10px; height: 8px; }
-
     .char.sad .mouth { border-bottom: none; border-top: 3px solid #2a2724; border-radius: 10px 10px 0 0; height: 8px; transform: translateX(-50%) scaleX(0.8); }
     .char-black.sad .mouth { border-top-color: rgba(255,255,255,0.6); }
     .char.surprised .mouth { width: 12px; height: 12px; border: 2px solid #2a2724; border-radius: 50%; background: transparent; border-bottom-width: 2px; }
@@ -101,15 +98,89 @@
       height: 2px; background: #2a2724; margin-top: -1px; border-radius: 1px;
     }
     .char.eyes-closed .pupil { opacity: 0; }
-    .char.eyes-closed.black .eye::after { background: rgba(255,255,255,0.6); }
+    .char.eyes-closed.black .eye::after { background: #2a2724; }
+
+    /* ====== 表情增强：腮红 ====== */
+    .blush {
+      position: absolute; width: 14px; height: 8px;
+      background: rgba(255,100,100,0.25); border-radius: 50%;
+      bottom: 30px; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    .blush-l { left: 8px; }
+    .blush-r { right: 8px; }
+    .char-purple .blush { bottom: 34px; }
+    .char-black .blush { display: none; }
+    .char-yellow .blush { bottom: 32px; }
+    .char.happy .blush, .char.embarrassed .blush { opacity: 1; }
+
+    /* ====== 表情增强：泪水 ====== */
+    .tear {
+      position: absolute; width: 6px; height: 10px;
+      background: rgba(120,180,255,0.55); border-radius: 6px 6px 6px 2px;
+      pointer-events: none; opacity: 0;
+    }
+    .tear-l { left: 10px; bottom: -4px; transform: rotate(-6deg); }
+    .tear-r { right: 10px; bottom: -4px; transform: rotate(6deg); }
+    .char.crying .tear { opacity: 1; }
+    .char.crying .tear-l { animation: tearFall 1.6s infinite 0s; }
+    .char.crying .tear-r { animation: tearFall 1.6s infinite 0.4s; }
+    @keyframes tearFall {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      80% { transform: translateY(18px) scale(0.8); opacity: 0.4; }
+      100% { transform: translateY(24px) scale(0.5); opacity: 0; }
+    }
+
+    /* ====== 表情增强：额外嘴型 ====== */
+    .char.laughing .mouth {
+      width: 24px; height: 12px; border-bottom: none;
+      border: 2px solid #2a2724; border-top: none;
+      border-radius: 0 0 50% 50%; background: transparent;
+    }
+    .char-black.laughing .mouth { border-color: rgba(255,255,255,0.6); }
+
+    .char.angry .mouth {
+      width: 14px; height: 8px; border-bottom: 3px solid #2a2724;
+      border-radius: 0; transform: translateX(-50%) scaleX(0.6);
+    }
+    .char-black.angry .mouth { border-bottom-color: rgba(255,255,255,0.6); }
+
+    .char.crying .mouth {
+      width: 16px; height: 8px; border: 2px solid #2a2724;
+      border-radius: 50%; border-bottom-color: transparent;
+      transform: translateX(-50%) scaleX(1.1) scaleY(0.6);
+    }
+    .char-black.crying .mouth { border-color: rgba(255,255,255,0.6); border-bottom-color: transparent; }
+
+    .char.confused { transform: rotate(-2deg) translateY(2px); }
+    .char.confused .mouth { transform: translateX(-50%) scaleX(0.6) rotate(-5deg); }
+
+    /* ====== 眼睛放大（惊讶） ====== */
+    .char.surprised .eye { width: 28px; height: 28px; }
+    .char.surprised .pupil { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; }
+    .char-black.surprised .eye { width: 22px; height: 22px; }
+    .char-black.surprised .pupil { width: 8px; height: 8px; margin-left: -4px; margin-top: -4px; }
+
+    /* ====== 表情动画 ====== */
     .char.curious { transform: scale(1.05) translateY(-4px); }
     .char.curious .mouth { transform: translateX(-50%) scaleX(1.1); }
     .char.shake { animation: shake 0.5s ease; }
     @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-2deg); } 40% { transform: translateX(6px) rotate(2deg); } 60% { transform: translateX(-4px) rotate(-1deg); } 80% { transform: translateX(4px) rotate(1deg); } }
     .char.bounce { animation: bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .char.jelly { animation: jelly 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes jelly {
+      0% { transform: scale(1, 1); }
+      20% { transform: scale(0.85, 1.15) translateY(-4px); }
+      40% { transform: scale(1.2, 0.8) translateY(-8px); }
+      55% { transform: scale(0.9, 1.1) translateY(-3px); }
+      70% { transform: scale(1.05, 0.95) translateY(-1px); }
+      85% { transform: scale(0.98, 1.02); }
+      100% { transform: scale(1, 1); }
+    }
     @keyframes bounce { 0% { transform: translateY(0); } 30% { transform: translateY(-20px); } 50% { transform: translateY(-24px); } 100% { transform: translateY(0); } }
     .char.look-down { transform: rotate(3deg) translateY(2px); }
     .char.look-down .char-eyes { transform: translateY(3px); }
+    .char.tilt { transform: rotate(4deg); }
+    .char.tilt-left { transform: rotate(-4deg); }
 
     /* ====== 右侧表单区 ====== */
     .form-side {
@@ -247,6 +318,10 @@
                 <div class="eye"><div class="pupil"></div></div>
                 <div class="eye"><div class="pupil"></div></div>
               </div>
+              <div class="blush blush-l"></div>
+              <div class="blush blush-r"></div>
+              <div class="tear tear-l"></div>
+              <div class="tear tear-r"></div>
               <div class="mouth"></div>
             </div>
           </div>
@@ -260,6 +335,10 @@
                 <div class="eye"><div class="pupil"></div></div>
                 <div class="eye"><div class="pupil"></div></div>
               </div>
+              <div class="blush blush-l"></div>
+              <div class="blush blush-r"></div>
+              <div class="tear tear-l"></div>
+              <div class="tear tear-r"></div>
               <div class="mouth"></div>
             </div>
           </div>
@@ -273,6 +352,10 @@
                 <div class="eye"><div class="pupil"></div></div>
                 <div class="eye"><div class="pupil"></div></div>
               </div>
+              <div class="blush blush-l"></div>
+              <div class="blush blush-r"></div>
+              <div class="tear tear-l"></div>
+              <div class="tear tear-r"></div>
               <div class="mouth"></div>
             </div>
           </div>
@@ -286,6 +369,10 @@
                 <div class="eye"><div class="pupil"></div></div>
                 <div class="eye"><div class="pupil"></div></div>
               </div>
+              <div class="blush blush-l"></div>
+              <div class="blush blush-r"></div>
+              <div class="tear tear-l"></div>
+              <div class="tear tear-r"></div>
               <div class="mouth"></div>
             </div>
           </div>
@@ -326,7 +413,6 @@
               <input type="checkbox" id="remember">
               <label for="remember">记住我</label>
             </div>
-            <a href="#" class="forgot-link">忘记密码</a>
           </div>
           <button type="submit" class="btn-login" id="loginBtn">登 录</button>
         </form>
@@ -361,22 +447,82 @@
         });
       }
 
+      // 角色台词（按性格）
+      var lines = {
+        orange: {
+          happy: '太好啦！', sad: '啊？错了...', surprised: '哇！',
+          angry: '生气了！', crying: '呜呜...', laughing: '哈哈哈哈',
+          confused: '嗯？奇怪', embarrassed: '嘿嘿...不好意思',
+          normal: '嗨！欢迎回来~', curious: '让我看看...', love: '最喜欢你了！'
+        },
+        purple: {
+          happy: '哼，还不错', sad: '搞什么嘛...', surprised: '哎？！',
+          angry: '烦死了！', crying: '...哼', laughing: '呵呵',
+          confused: '？啥意思', embarrassed: '...别看我',
+          normal: '哼，等你很久了', curious: '你干嘛呢', love: '...才没有很高兴'
+        },
+        black: {
+          happy: '......', sad: '......', surprised: '！',
+          angry: '......', crying: '......', laughing: '......',
+          confused: '......?', embarrassed: '..........',
+          normal: '......', curious: '......... ', love: '......♥'
+        },
+        yellow: {
+          happy: '恭喜你！', sad: '再试试吧', surprised: '嗯？',
+          angry: '不行不行！', crying: '好难过...', laughing: '嘿嘿嘿',
+          confused: '什么意思呀', embarrassed: '有点害羞呢',
+          normal: '请填写信息吧', curious: '这个嘛...', love: '冲鸭！！！'
+        }
+      };
+
+      // 角色性格名
+      var charNames = ['orange', 'purple', 'black', 'yellow'];
+
       // 设置表情
       function setExpression(type) {
         clearCharStates();
-        var msgs = {
-          happy: ['太好啦！', '哼，还不错', '......', '恭喜你'],
-          sad: ['啊，错了...', '搞什么嘛', '......', '再试试吧'],
-          surprised: ['哇！', '哎？！', '！', '嗯？'],
-          normal: ['嗨！欢迎回来~', '哼，等你很久了', '......', '请填写信息吧']
-        };
-        var ms = msgs[type] || msgs.normal;
         chars.forEach(function(c, i) {
-          if (type === 'happy') c.el.classList.add('happy');
-          else if (type === 'sad') c.el.classList.add('sad');
-          else if (type === 'surprised') c.el.classList.add('surprised');
+          var t = type;
+          // 不同角色对同种情况有不同反应
+          if (type === 'error') {
+            t = c.name === 'yellow' ? 'sad' : c.name === 'orange' ? 'surprised' : c.name === 'purple' ? 'angry' : 'normal';
+          }
+          if (t === 'happy' || t === 'laughing') {
+            c.el.classList.add('happy');
+          } else if (t === 'sad') {
+            c.el.classList.add('sad');
+          } else if (t === 'surprised') {
+            c.el.classList.add('surprised');
+            c.el.classList.add('curious');
+          } else if (t === 'angry') {
+            c.el.classList.add('angry');
+          } else if (t === 'crying') {
+            c.el.classList.add('crying');
+          } else if (t === 'laughing') {
+            c.el.classList.add('laughing');
+          } else if (t === 'confused') {
+            c.el.classList.add('confused');
+          } else if (t === 'embarrassed') {
+            c.el.classList.add('embarrassed');
+            c.el.classList.add('happy');
+          }
           if (c.bubble) {
-            c.bubble.textContent = ms[i];
+            var name = charNames[i];
+            var msgs = lines[name] || lines.orange;
+            c.bubble.textContent = msgs[t] || msgs.normal || '...';
+            c.bubble.classList.add('show');
+            setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 2200);
+          }
+        });
+      }
+
+      function setCurious() {
+        clearCharStates();
+        chars.forEach(function(c) {
+          c.el.classList.add('curious');
+          if (c.bubble) {
+            var name = charNames[chars.indexOf(c)];
+            c.bubble.textContent = (lines[name] || lines.orange).curious;
             c.bubble.classList.add('show');
             setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 2000);
           }
@@ -497,6 +643,38 @@
         }
       });
 
+      // ====== 输入打字互动 ======
+      var typingTimer;
+      usernameInput.addEventListener('input', function() {
+        var val = this.value;
+        if (val.length === 1) {
+          setCurious();
+          chars.forEach(function(c) { c.el.classList.add('curious'); });
+        } else if (val.length >= 8) {
+          clearCharStates();
+          chars.forEach(function(c, i) {
+            c.el.classList.add('happy');
+            if (c.bubble && i === 3) {
+              c.bubble.textContent = '好长的名字！';
+              c.bubble.classList.add('show');
+              setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 1500);
+            }
+          });
+        }
+      });
+      pwInput.addEventListener('input', function() {
+        var val = this.value;
+        if (val.length >= 8) {
+          chars.forEach(function(c) {
+            if (c.bubble && c.name === 'orange') {
+              c.bubble.textContent = '密码很强哦！';
+              c.bubble.classList.add('show');
+              setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 1500);
+            }
+          });
+        }
+      });
+
       // ====== 登录提交 ======
       loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -510,16 +688,18 @@
         xhr.onreadystatechange = function() {
           if (xhr.readyState === 4) {
             loginBtn.disabled = false;
-            loginBtn.textContent = 'Log in';
+            loginBtn.textContent = '登录';
 
             if (xhr.status === 200) {
-              // 检查返回的是否是重定向（登录成功）
               if (xhr.responseURL && xhr.responseURL.indexOf('/dashboard') > -1) {
-                // 成功 - 直接跳转
-                window.location.href = '/dashboard';
+                setExpression('laughing');
+                chars.forEach(function(c) {
+                  c.el.classList.add('bounce');
+                  setTimeout(function() { c.el.classList.remove('bounce'); }, 600);
+                });
+                setTimeout(function() { window.location.href = '/dashboard'; }, 800);
               } else if (xhr.responseText.indexOf('error') > -1) {
-                // 失败
-                setExpression('sad');
+                setExpression('crying');
                 chars.forEach(function(c) {
                   c.el.classList.add('shake');
                   setTimeout(function() { c.el.classList.remove('shake'); }, 600);
@@ -532,7 +712,6 @@
                   setTimeout(function() { if (chars[2].bubble) chars[2].bubble.classList.remove('show'); }, 2000);
                 }
               } else {
-                // 成功
                 setExpression('happy');
                 chars.forEach(function(c) {
                   c.el.classList.add('bounce');
@@ -541,8 +720,7 @@
                 setTimeout(function() { window.location.href = '/dashboard'; }, 800);
               }
             } else {
-              // HTTP 错误码
-              setExpression('sad');
+              setExpression('crying');
               errorMsg.textContent = '登录失败，请重试';
               errorMsg.classList.add('show');
             }
@@ -551,12 +729,34 @@
         xhr.send(new URLSearchParams(formData).toString());
       });
 
-      // 初始化：设默认表情
+      // ====== 点击角色互动（果冻效果 + 表情变化）======
+      var clickReactions = ['jelly', 'shake', 'bounce', 'surprised'];
+      chars.forEach(function(c) {
+        c.el.addEventListener('click', function() {
+          var anim = clickReactions[Math.floor(Math.random() * clickReactions.length)];
+          c.el.classList.remove(anim);
+          void c.el.offsetWidth;
+          c.el.classList.add(anim);
+          setTimeout(function() { c.el.classList.remove(anim); }, 600);
+          if (c.bubble) {
+            var texts = (lines[c.name] || lines.orange);
+            var reactKeys = ['happy', 'surprised', 'confused', 'embarrassed'];
+            var key = reactKeys[Math.floor(Math.random() * reactKeys.length)];
+            c.bubble.textContent = texts[key] || '啊！';
+            c.bubble.classList.add('show');
+            setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 1800);
+          }
+        });
+      });
+
+      // ====== 空闲动画 ======
       setTimeout(function() {
         clearCharStates();
-        // 随机眨眨眼
+        var idleTimer = 0;
         setInterval(function() {
+          idleTimer++;
           chars.forEach(function(c) {
+            // 随机眨眼
             if (Math.random() > 0.7) {
               c.el.classList.add('eyes-closed');
               if (c.name === 'black') c.el.classList.add('black');
@@ -564,6 +764,14 @@
                 c.el.classList.remove('eyes-closed');
                 if (c.name === 'black') c.el.classList.remove('black');
               }, 150);
+            }
+            // 偶尔无聊表情
+            if (idleTimer % 10 === 0 && Math.random() > 0.8) {
+              if (c.name === 'orange' && c.bubble) {
+                c.bubble.textContent = '好无聊呀~';
+                c.bubble.classList.add('show');
+                setTimeout(function() { if (c.bubble) c.bubble.classList.remove('show'); }, 1500);
+              }
             }
           });
         }, 3000);

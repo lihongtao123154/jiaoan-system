@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= plan.title %> - 教案管理系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title><%= plan.title %> - 《体育与健康》课程教学资源库</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,7 +11,7 @@
     <div class="nav-inner">
       <div class="nav-brand">
         <span class="nav-brand-logo"></span>
-        <span class="nav-title">教案管理系统</span>
+        <span class="nav-title">《体育与健康》课程教学资源库</span>
       </div>
       <div class="nav-menu">
         <span class="nav-user">
@@ -34,6 +32,7 @@
     <div class="plan-detail">
       <div class="detail-actions">
         <a href="/dashboard" class="btn btn-sm btn-outline">返回首页</a>
+        <% if (plan.authorId === user.id || user.role === 'admin') { %>
         <div class="detail-actions-right">
           <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
           <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
@@ -41,6 +40,7 @@
             <button type="submit" class="btn btn-sm btn-danger">删除</button>
           </form>
         </div>
+        <% } %>
       </div>
 
       <div class="detail-header">
@@ -82,6 +82,10 @@
         </div>
       <% } %>
 
+      <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;cursor:pointer" onclick="closeLightbox()">
+        <img id="lightboxImg" style="max-width:90%;max-height:90%;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.5);object-fit:contain">
+        <span style="position:absolute;top:20px;right:30px;color:#fff;font-size:32px;cursor:pointer;opacity:0.7">&times;</span>
+      </div>
       <% const images = plan.files.filter(f => f.type === 'image'); %>
       <% if (images.length > 0) { %>
         <div class="detail-section">
@@ -89,11 +93,10 @@
           <div class="image-gallery">
             <% images.forEach(function(img) { %>
               <div class="gallery-item">
-                <a href="<%= img.url %>" target="_blank" class="gallery-link">
-                  <img src="<%= img.url %>"
-                       alt="<%= img.originalName %>" loading="lazy"
-                       title="<%= img.originalName %> (<%= formatFileSize(img.size) %>)">
-                </a>
+                <img src="<%= img.url %>" class="gallery-img"
+                     alt="<%= img.originalName %>" loading="lazy"
+                     title="<%= img.originalName %> (<%= formatFileSize(img.size) %>)"
+                     onclick="openLightbox(this.src)">
                 <div class="gallery-item-name"><%= img.originalName %></div>
               </div>
             <% }); %>
@@ -108,8 +111,8 @@
           <div class="video-grid">
             <% videos.forEach(function(vid) { %>
               <div class="video-card">
-                <video controls preload="metadata" class="video-player"
-                       onerror="this.parentElement.innerHTML='<div class=\\'video-error\\'>视频加载失败: <%= vid.originalName %></div>'">
+                <video controls preload="metadata" class="video-player" data-name="<%= vid.originalName %>"
+                       onerror="var n=this.getAttribute('data-name');this.parentElement.innerHTML='<div class=\\'video-error\\'>视频加载失败: '+n+'</div>'">
                   <source src="<%= vid.url %>" type="<%= vid.mimeType || 'video/mp4' %>">
                   您的浏览器不支持视频播放
                 </video>
@@ -297,6 +300,20 @@
           if (d.success) { alert('已恢复！'); location.reload(); }
         });
     }
+
+    function openLightbox(src) {
+      var lb = document.getElementById('lightbox');
+      document.getElementById('lightboxImg').src = src;
+      lb.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLightbox();
+    });
   </script>
 </body>
 </html>

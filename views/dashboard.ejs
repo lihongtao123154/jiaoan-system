@@ -3,244 +3,430 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>教案管理系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>《体育与健康》课程教学资源库</title>
+
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    :root {
+      --gm-primary: #1a73e8;
+      --gm-primary-dark: #1557b0;
+      --gm-primary-light: #e8f0fe;
+      --gm-surface: #fff;
+      --gm-bg: #f8f9fa;
+      --gm-text: #202124;
+      --gm-text-secondary: #5f6368;
+      --gm-text-muted: #9aa0a6;
+      --gm-border: #dadce0;
+      --gm-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --gm-shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
+      --gm-radius: 16px;
+      --gm-radius-sm: 8px;
+      --gm-transition: all 0.2s cubic-bezier(0.2,0,0,1);
+    }
+
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--gm-bg); color: var(--gm-text); min-height: 100vh; font-size: 14px;
+    }
+
+    /* ====== Google Material Top App Bar ====== */
+    .gm-topbar {
+      background: var(--gm-surface); border-bottom: 1px solid var(--gm-border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .gm-topbar-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; gap: 24px;
+    }
+    .gm-logo {
+      font-size: 20px; font-weight: 600; color: var(--gm-text);
+      text-decoration: none; letter-spacing: -0.3px; white-space: nowrap;
+    }
+    .gm-logo span { color: var(--gm-primary); }
+    .gm-nav { display: flex; align-items: center; gap: 4px; flex: 1; margin-left: 16px; }
+    .gm-nav a {
+      padding: 8px 14px; border-radius: 24px; font-size: 14px; font-weight: 500;
+      color: var(--gm-text-secondary); text-decoration: none; transition: var(--gm-transition);
+    }
+    .gm-nav a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+    .gm-nav a.active { background: var(--gm-primary-light); color: var(--gm-primary); font-weight: 600; }
+    .gm-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .gm-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--gm-primary-light);
+      color: var(--gm-primary); display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--gm-transition);
+    }
+    .gm-avatar:hover { box-shadow: 0 0 0 4px rgba(26,115,232,0.12); }
+    .gm-btn {
+      padding: 8px 20px; border: none; border-radius: 24px; font-size: 14px; font-weight: 500;
+      font-family: inherit; cursor: pointer; transition: var(--gm-transition); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .gm-btn-primary { background: var(--gm-primary); color: #fff; }
+    .gm-btn-primary:hover { background: var(--gm-primary-dark); box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+    .gm-btn-outline { background: transparent; color: var(--gm-primary); border: 1px solid var(--gm-border); }
+    .gm-btn-outline:hover { background: var(--gm-primary-light); border-color: var(--gm-primary); }
+    .gm-btn-danger { color: #d93025; }
+    .gm-btn-danger:hover { background: #fce8e6; }
+
+    /* ====== Main Layout ====== */
+    .gm-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    /* ====== Page Header ====== */
+    .gm-page-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+    }
+    .gm-page-header h1 {
+      font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
+    }
+    .gm-page-header .gm-count {
+      color: var(--gm-text-muted); font-size: 14px; font-weight: 500;
+    }
+    .gm-page-header .gm-spacer { flex: 1; }
+    .gm-hint {
+      font-size: 13px; color: var(--gm-text-muted); margin-bottom: 20px;
+      padding: 12px 16px; background: #f1f3f4; border-radius: var(--gm-radius-sm);
+    }
+
+    /* ====== Stats Cards ====== */
+    .gm-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .gm-stat-card {
+      background: var(--gm-surface); border-radius: var(--gm-radius-sm);
+      padding: 20px; border: 1px solid var(--gm-border); transition: var(--gm-transition);
+    }
+    .gm-stat-card:hover { box-shadow: var(--gm-shadow); border-color: transparent; }
+    .gm-stat-card .num { font-size: 32px; font-weight: 700; color: var(--gm-primary); line-height: 1; }
+    .gm-stat-card .label { font-size: 13px; color: var(--gm-text-secondary); margin-top: 6px; font-weight: 500; }
+
+    /* ====== Material Tabs ====== */
+    .gm-tabs {
+      display: flex; gap: 0; margin-bottom: 0; border-bottom: 1px solid var(--gm-border);
+      background: var(--gm-surface); border-radius: var(--gm-radius-sm) var(--gm-radius-sm) 0 0;
+      padding: 0 16px;
+    }
+    .gm-tab {
+      padding: 14px 20px; border: none; background: none; font-size: 14px; font-weight: 600;
+      font-family: inherit; color: var(--gm-text-secondary); cursor: pointer;
+      position: relative; transition: var(--gm-transition); letter-spacing: 0.2px;
+    }
+    .gm-tab::after {
+      content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 0; height: 3px; background: var(--gm-primary); border-radius: 3px 3px 0 0;
+      transition: var(--gm-transition);
+    }
+    .gm-tab:hover { color: var(--gm-text); background: var(--gm-primary-light); }
+    .gm-tab.active { color: var(--gm-primary); }
+    .gm-tab.active::after { width: 100%; }
+
+    /* ====== Filter Chips ====== */
+    .gm-chips {
+      display: flex; flex-wrap: wrap; gap: 8px; padding: 16px;
+      background: var(--gm-surface); border: 1px solid var(--gm-border);
+      border-top: none; border-radius: 0 0 var(--gm-radius-sm) var(--gm-radius-sm);
+    }
+    .gm-chip {
+      padding: 7px 16px; border: 1px solid var(--gm-border); border-radius: 20px;
+      background: var(--gm-surface); font-size: 13px; font-weight: 500; font-family: inherit;
+      color: var(--gm-text-secondary); cursor: pointer; transition: var(--gm-transition);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .gm-chip:hover { border-color: var(--gm-primary); color: var(--gm-primary); background: var(--gm-primary-light); }
+    .gm-chip.active { background: var(--gm-primary); color: #fff; border-color: var(--gm-primary); }
+    .gm-chip .cnt {
+      font-size: 11px; background: rgba(0,0,0,0.07); padding: 0 7px; border-radius: 10px; line-height: 18px;
+    }
+    .gm-chip.active .cnt { background: rgba(255,255,255,0.25); }
+
+    /* ====== Material Cards ====== */
+    .gm-card-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px; margin-top: 20px;
+    }
+    .gm-card {
+      background: var(--gm-surface); border-radius: var(--gm-radius);
+      border: 1px solid var(--gm-border); overflow: hidden;
+      transition: var(--gm-transition); cursor: pointer; position: relative;
+    }
+    .gm-card:hover { box-shadow: var(--gm-shadow-hover); border-color: transparent; transform: translateY(-2px); }
+    .gm-card-thumb {
+      height: 140px; background: #f1f3f4; display: flex; align-items: center;
+      justify-content: center; overflow: hidden; position: relative;
+    }
+    .gm-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .gm-card-thumb-empty {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--gm-text-muted); font-size: 13px;
+    }
+    .gm-card-thumb-empty .icon { font-size: 28px; opacity: 0.3; }
+    .gm-card-body { padding: 16px 20px 20px; }
+    .gm-card-sport {
+      font-size: 12px; font-weight: 600; color: var(--gm-primary); text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .gm-card-title {
+      font-size: 18px; font-weight: 600; color: var(--gm-text); line-height: 1.4;
+      margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .gm-card-meta {
+      display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--gm-text-muted); margin-bottom: 12px;
+    }
+    .gm-card-meta span { display: flex; align-items: center; gap: 3px; }
+    .gm-card-tags { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+    .gm-card-tag {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #f1f3f4; color: var(--gm-text-secondary);
+    }
+    .gm-card-actions {
+      display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #f1f3f4;
+    }
+    .gm-card-actions .gm-btn { padding: 6px 16px; font-size: 13px; }
+
+    /* ====== Empty State ====== */
+    .gm-empty {
+      text-align: center; padding: 80px 20px; color: var(--gm-text-muted);
+    }
+    .gm-empty .icon { font-size: 56px; margin-bottom: 16px; opacity: 0.3; }
+    .gm-empty h3 { font-size: 20px; font-weight: 600; color: var(--gm-text); margin-bottom: 8px; }
+    .gm-empty p { font-size: 14px; margin-bottom: 20px; }
+
+    /* ====== Dropdown menu ====== */
+    .gm-menu {
+      position: absolute; top: 48px; right: 16px; background: var(--gm-surface);
+      border: 1px solid var(--gm-border); border-radius: var(--gm-radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 8px 0; display: none; z-index: 200;
+      min-width: 180px;
+    }
+    .gm-menu.show { display: block; }
+    .gm-menu a {
+      display: block; padding: 10px 20px; color: var(--gm-text); text-decoration: none;
+      font-size: 14px; transition: var(--gm-transition);
+    }
+    .gm-menu a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+
+    /* ====== Responsive ====== */
+    @media (max-width: 720px) {
+      .gm-topbar-inner { padding: 0 16px; gap: 12px; }
+      .gm-nav { display: none; }
+      .gm-main { padding: 16px; }
+      .gm-page-header { flex-wrap: wrap; }
+      .gm-page-header h1 { font-size: 22px; }
+      .gm-card-grid { grid-template-columns: 1fr; }
+      .gm-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-inner">
-      <div class="nav-brand">
-        <span class="nav-brand-logo"></span>
-        <span class="nav-title">教案管理系统</span>
-      </div>
-      <div class="nav-menu">
-        <span class="nav-user">
-          <span class="user-avatar"><%= user.displayName.charAt(0) %></span>
-          <span><%= user.displayName %></span>
-        </span>
-        <a href="/dashboard" class="nav-link <%= pageType === 'private' ? 'nav-link-active' : '' %>">私人空间</a>
-        <a href="/hall" class="nav-link <%= pageType === 'public' ? 'nav-link-active' : '' %>">公共大厅</a>
-        <a href="/plan/new" class="btn btn-primary btn-sm">+ 新建教案</a>
-        <a href="/courses" class="nav-link">课程管理</a>
-        <% if (user.role === 'admin') { %>
-          <a href="/users" class="nav-link">用户管理</a>
-        <% } %>
-        <a href="/logout" class="nav-link nav-link-danger">退出</a>
-      </div>
-      <button class="nav-toggle" onclick="document.querySelector('.nav-menu').classList.toggle('show')">
-        <span class="nav-toggle-bar"></span>
-      </button>
-    </div>
-  </nav>
 
-  <main class="main-content">
-    <% if (stats) { %>
-      <div class="stats-bar">
-        <div class="stat-item"><span class="stat-num"><%= stats.total %></span><span class="stat-label"><%= pageType === 'public' ? '公开教案' : '我的教案' %></span></div>
-        <div class="stat-item"><span class="stat-num"><%= stats.totalViews %></span><span class="stat-label">总浏览</span></div>
-        <div class="stat-item"><span class="stat-num"><%= stats.totalFavs %></span><span class="stat-label">总收藏</span></div>
-        <div class="stat-item"><span class="stat-num"><%= stats.totalComments %></span><span class="stat-label">评论数</span></div>
+  <!-- ====== Google Material Top App Bar ====== -->
+  <header class="gm-topbar">
+    <div class="gm-topbar-inner">
+      <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
+      <nav class="gm-nav">
+        <a href="/dashboard" class="<%= pageType === 'private' ? 'active' : '' %>">私人空间</a>
+        <a href="/hall" class="<%= pageType === 'public' ? 'active' : '' %>">公共大厅</a>
+        <a href="/courses">课程管理</a>
+        <% if (user.role === 'admin') { %><a href="/users">用户管理</a><% } %>
+      </nav>
+      <div class="gm-nav-right">
+        <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建</a>
+        <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
+        <div class="gm-menu" id="userMenu">
+          <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
+          <a href="/logout">退出登录</a>
+        </div>
       </div>
-    <% } %>
-
-    <div class="page-header">
-      <h2><%= pageType === 'public' ? '公共大厅' : '私人空间' %></h2>
-      <span class="page-count">共 <%= plans.length %> 个教案</span>
-      <div style="margin-left:auto"><a href="/plan/new" class="btn btn-primary">+ 新建教案</a></div>
     </div>
+  </header>
+
+  <!-- ====== Main Content ====== -->
+  <main class="gm-main">
+
+    <!-- Page Header -->
+    <div class="gm-page-header">
+      <h1><%= pageType === 'public' ? '公共大厅' : '私人空间' %></h1>
+      <span class="gm-count">共 <%= plans.length %> 个教案</span>
+      <div class="gm-spacer"></div>
+      <a href="/courses" class="gm-btn gm-btn-outline">课程结构</a>
+      <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建教案</a>
+    </div>
+
     <% if (pageType === 'public') { %>
-      <div class="hint"><span class="hint-icon">i</span> 浏览其他老师分享的公开教案，可以收藏和评论哦</div>
+      <div class="gm-hint">浏览其他老师分享的公开教案，可以收藏和评论哦</div>
     <% } else if (plans.length > 0) { %>
-      <div class="hint"><span class="hint-icon">i</span> 点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
+      <div class="gm-hint">点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
     <% } else { %>
-      <div class="hint"><span class="hint-icon">i</span> 点击上方按钮创建你的第一个教案，编辑时可选择课程、添加标签和附件</div>
+      <div class="gm-hint">点击上方按钮创建你的第一个教案，编辑时可选择课程、添加标签和附件</div>
     <% } %>
 
-    <div class="filter-bar">
-      <% if (courses.length > 0) { %>
-        <div class="course-tabs">
-          <button class="course-tab active" data-filter="all">全部</button>
-          <% courses.forEach(function(c) { %>
-            <button class="course-tab" data-filter="<%= c.id %>"><%= c.name %></button>
-          <% }); %>
-          <button class="course-tab" data-filter="none">未分类</button>
-        </div>
-      <% } %>
-      <% if (allTags && allTags.length > 0) { %>
-        <div class="tag-tabs">
-          <button class="tag-tab active" data-tag="all">全部标签</button>
-          <% allTags.forEach(function(t) { %>
-            <button class="tag-tab" data-tag="<%= t.id %>" style="border-color:<%= t.color || '#3498db' %>"><%= t.name %></button>
-          <% }); %>
-        </div>
-      <% } %>
+    <!-- Stats -->
+    <% if (stats) { %>
+      <div class="gm-stats">
+        <div class="gm-stat-card"><div class="num"><%= stats.total %></div><div class="label"><%= pageType === 'public' ? '公开教案' : '我的教案' %></div></div>
+        <div class="gm-stat-card"><div class="num"><%= stats.totalViews %></div><div class="label">总浏览</div></div>
+        <div class="gm-stat-card"><div class="num"><%= stats.totalFavs %></div><div class="label">总收藏</div></div>
+        <div class="gm-stat-card"><div class="num"><%= stats.totalComments %></div><div class="label">评论数</div></div>
+      </div>
+    <% } %>
+
+    <!-- Tabs + Chips Group -->
+    <div style="background:var(--gm-surface);border-radius:var(--gm-radius-sm);border:1px solid var(--gm-border);margin-bottom:8px">
+      <!-- Channel Tabs -->
+      <div class="gm-tabs" id="channelBar">
+        <% ['体育1','体育2','体育3','体育4'].forEach(function(g) { %>
+          <button class="gm-tab <%= sportGroup === g ? 'active' : '' %>" data-group="<%= g %>"><%= g %></button>
+        <% }); %>
+      </div>
+
+      <!-- Sport Chips -->
+      <div class="gm-chips" id="sportBar">
+        <span style="font-size:13px;color:var(--gm-text-muted)">加载中...</span>
+      </div>
     </div>
 
+    <!-- Tag Chips -->
+    <% if (allTags && allTags.length > 0) { %>
+      <div class="gm-chips" style="border-radius:var(--gm-radius-sm);margin-bottom:8px;border-top:1px solid var(--gm-border)">
+        <button class="gm-chip active" data-tag="all">全部标签</button>
+        <% allTags.forEach(function(t) { %>
+          <button class="gm-chip" data-tag="<%= t.id %>" style="border-color:<%= t.color || '#1a73e8' %>"><%= t.name %></button>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <!-- Plan Cards -->
     <% if (plans.length === 0) { %>
-      <div class="empty-state">
-        <div class="empty-state-title"><%= pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案' %></div>
-        <div class="empty-state-desc"><%= pageType === 'public' ? '还没有公开教案，快去创建第一个吧！' : '点击下方按钮创建你的第一个教案' %></div>
-        <a href="/plan/new" class="btn btn-primary btn-lg">创建第一个教案</a>
+      <div class="gm-empty">
+        <div class="icon">📋</div>
+        <h3><%= !sportName ? (pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案') : '该分类下暂无教案' %></h3>
+        <p><%= !sportName ? (pageType === 'public' ? '去看看其他分类吧' : '点击下方按钮创建教案') : '试试其他运动项目' %></p>
+        <a href="/plan/new" class="gm-btn gm-btn-primary" style="padding:10px 28px;font-size:15px">创建教案</a>
       </div>
     <% } else { %>
-      <% courses.forEach(function(c) {
-        const coursePlans = plans.filter(function(p) { return p.courseId === c.id; });
-        if (coursePlans.length === 0) return;
-      %>
-        <div class="course-section" data-course="<%= c.id %>">
-          <div class="course-section-header">
-            <h3 class="course-section-title"><%= c.name %></h3>
-            <span class="course-section-count"><%= coursePlans.length %> 个教案</span>
-          </div>
-          <div class="plan-grid">
-            <% coursePlans.forEach(function(plan) {
-              const imageFiles = plan.files.filter(f => f.type === 'image');
-              const videoFiles = plan.files.filter(f => f.type === 'video');
-            %>
-              <div class="plan-card" data-tags="<%= (plan.tags || []).map(function(t){return t.id}).join(',') %>">
-                <% if (plan.coverUrl) { %>
-                  <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
-                <% } else if (imageFiles.length > 0) { %>
-                  <div class="plan-card-thumb"><img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy"></div>
-                <% } else if (videoFiles.length > 0) { %>
-                  <div class="plan-card-thumb video-bg">
-                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span><%= videoFiles.length %> 个视频</span></div>
-                  </div>
-                <% } else { %>
-                  <div class="plan-card-thumb">
-                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>暂无附件</span></div>
-                  </div>
-                <% } %>
-                <div class="plan-card-body">
-                  <% if (plan.sessionName) { %><div class="plan-card-session"><%= plan.sessionName %></div><% } %>
-                  <div class="plan-card-title"><%= plan.title %></div>
-                  <div class="plan-card-meta">
-                    <span class="plan-card-meta-item"><%= plan.author %></span>
-                    <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
-                    <span class="plan-card-meta-item">👁 <%= plan.viewCount || 0 %></span>
-                    <span class="plan-card-meta-item">⭐ <%= plan.favCount || 0 %></span>
-                  </div>
-                  <% if (plan.tags && plan.tags.length > 0) { %>
-                    <div class="plan-card-tags">
-                      <% plan.tags.slice(0, 3).forEach(function(t) { %>
-                        <span class="tag-dot" style="background:<%= t.color || '#3498db' %>" title="<%= t.name %>"></span>
-                      <% }); %>
-                      <% if (plan.tags.length > 3) { %><span class="tag-more">+<%= plan.tags.length - 3 %></span><% } %>
-                    </div>
-                  <% } %>
-                  <div class="plan-card-actions">
-                    <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
-                    <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
-                    <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
-                          onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
-                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                    </form>
-                  </div>
-                </div>
+      <div class="gm-card-grid">
+        <% plans.forEach(function(plan) {
+          const imageFiles = plan.files.filter(f => f.type === 'image');
+          const videoFiles = plan.files.filter(f => f.type === 'video');
+        %>
+          <div class="gm-card" data-tags="<%= (plan.tags || []).map(function(t){return t.id}).join(',') %>" data-sport="<%= plan.sportName || '' %>">
+            <% if (plan.coverUrl) { %>
+              <div class="gm-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
+            <% } else if (imageFiles.length > 0) { %>
+              <div class="gm-card-thumb"><img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy"></div>
+            <% } else if (videoFiles.length > 0) { %>
+              <div class="gm-card-thumb"><div class="gm-card-thumb-empty"><span class="icon">🎬</span><span><%= videoFiles.length %> 个视频</span></div></div>
+            <% } else { %>
+              <div class="gm-card-thumb"><div class="gm-card-thumb-empty"><span class="icon">📄</span><span>暂无附件</span></div></div>
+            <% } %>
+            <div class="gm-card-body">
+              <% if (plan.sportName) { %><div class="gm-card-sport"><%= plan.sportGroup %> · <%= plan.sportName %></div><% } %>
+              <div class="gm-card-title"><%= plan.title %></div>
+              <div class="gm-card-meta">
+                <span><%= plan.author %></span>
+                <span>·</span>
+                <span><%= formatDate(plan.updatedAt) %></span>
+                <span style="margin-left:auto">👁 <%= plan.viewCount || 0 %></span>
+                <span>⭐ <%= plan.favCount || 0 %></span>
               </div>
-            <% }); %>
-          </div>
-        </div>
-      <% }); %>
-
-      <% var uncategorized = plans.filter(function(p) { return !p.courseId; }); %>
-      <% if (uncategorized.length > 0) { %>
-        <div class="course-section" data-course="none">
-          <div class="course-section-header">
-            <h3 class="course-section-title">未分类</h3>
-            <span class="course-section-count"><%= uncategorized.length %> 个教案</span>
-          </div>
-          <div class="plan-grid">
-            <% uncategorized.forEach(function(plan) {
-              const imageFiles = plan.files.filter(f => f.type === 'image');
-              const videoFiles = plan.files.filter(f => f.type === 'video');
-            %>
-              <div class="plan-card" data-tags="<%= (plan.tags || []).map(function(t){return t.id}).join(',') %>">
-                <% if (plan.coverUrl) { %>
-                  <div class="plan-card-thumb"><img src="<%= plan.coverUrl %>" alt="<%= plan.title %>" loading="lazy"></div>
-                <% } else if (imageFiles.length > 0) { %>
-                  <div class="plan-card-thumb"><img src="<%= imageFiles[0].url %>" alt="<%= plan.title %>" loading="lazy"></div>
-                <% } else if (videoFiles.length > 0) { %>
-                  <div class="plan-card-thumb video-bg">
-                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span><%= videoFiles.length %> 个视频</span></div>
-                  </div>
-                <% } else { %>
-                  <div class="plan-card-thumb">
-                    <div class="plan-card-thumb-empty"><div class="thumb-icon"></div><span>暂无附件</span></div>
-                  </div>
-                <% } %>
-                <div class="plan-card-body">
-                  <% if (plan.sessionName) { %><div class="plan-card-session"><%= plan.sessionName %></div><% } %>
-                  <div class="plan-card-title"><%= plan.title %></div>
-                  <div class="plan-card-meta">
-                    <span class="plan-card-meta-item"><%= plan.author %></span>
-                    <span class="plan-card-meta-item"><%= formatDate(plan.updatedAt) %></span>
-                    <span class="plan-card-meta-item">👁 <%= plan.viewCount || 0 %></span>
-                    <span class="plan-card-meta-item">⭐ <%= plan.favCount || 0 %></span>
-                  </div>
-                  <% if (plan.tags && plan.tags.length > 0) { %>
-                    <div class="plan-card-tags">
-                      <% plan.tags.slice(0, 3).forEach(function(t) { %>
-                        <span class="tag-dot" style="background:<%= t.color || '#3498db' %>" title="<%= t.name %>"></span>
-                      <% }); %>
-                      <% if (plan.tags.length > 3) { %><span class="tag-more">+<%= plan.tags.length - 3 %></span><% } %>
-                    </div>
-                  <% } %>
-                  <div class="plan-card-actions">
-                    <a href="/plan/<%= plan.id %>" class="btn btn-sm btn-outline">查看</a>
-                    <a href="/plan/<%= plan.id %>/edit" class="btn btn-sm btn-secondary">编辑</a>
-                    <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form"
-                          onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
-                      <button type="submit" class="btn btn-sm btn-danger">删除</button>
-                    </form>
-                  </div>
+              <% if (plan.tags && plan.tags.length > 0) { %>
+                <div class="gm-card-tags">
+                  <% plan.tags.slice(0, 3).forEach(function(t) { %>
+                    <span class="gm-card-tag" style="background:<%= t.color || '#f1f3f4' %>20;color:<%= t.color || '#5f6368' %>"><%= t.name %></span>
+                  <% }); %>
+                  <% if (plan.tags.length > 3) { %><span class="gm-card-tag">+<%= plan.tags.length - 3 %></span><% } %>
                 </div>
+              <% } %>
+              <div class="gm-card-actions">
+                <a href="/plan/<%= plan.id %>" class="gm-btn gm-btn-outline">查看</a>
+                <a href="/plan/<%= plan.id %>/edit" class="gm-btn gm-btn-outline">编辑</a>
+                <form action="/plan/<%= plan.id %>/delete" method="POST" class="inline-form" style="margin-left:auto"
+                      onsubmit="return confirm('确定删除「<%= plan.title %>」吗？删除后无法恢复。')">
+                  <button type="submit" class="gm-btn gm-btn-danger">删除</button>
+                </form>
               </div>
-            <% }); %>
+            </div>
           </div>
-        </div>
-      <% } %>
+        <% }); %>
+      </div>
     <% } %>
   </main>
 
   <script>
-    // 课程筛选
-    document.querySelectorAll('.course-tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.course-tab').forEach(function(t) { t.classList.remove('active'); });
-        this.classList.add('active');
-        applyFilters();
-      });
+    // Avatar dropdown
+    document.getElementById('avatarBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('userMenu').classList.toggle('show');
     });
-    // 标签筛选
-    document.querySelectorAll('.tag-tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.tag-tab').forEach(function(t) { t.classList.remove('active'); });
-        this.classList.add('active');
-        applyFilters();
-      });
+    document.addEventListener('click', function() {
+      document.getElementById('userMenu').classList.remove('show');
     });
-    function applyFilters() {
-      var courseFilter = document.querySelector('.course-tab.active')?.dataset?.filter || 'all';
-      var tagFilter = document.querySelector('.tag-tab.active')?.dataset?.tag || 'all';
-      document.querySelectorAll('.plan-card').forEach(function(card) {
-        var show = true;
-        // Course filter handled by section visibility
-        if (tagFilter !== 'all') {
-          var cardTags = (card.dataset.tags || '').split(',');
-          if (!cardTags.includes(tagFilter)) show = false;
-        }
-        if (!show) card.style.display = 'none';
-        else card.style.display = '';
-      });
-      document.querySelectorAll('.course-section').forEach(function(section) {
-        section.style.display = (courseFilter === 'all' || section.dataset.course === courseFilter) ? 'block' : 'none';
-      });
-    }
-  </script>
 
+    // Channel tabs
+    document.getElementById('channelBar').addEventListener('click', function(e) {
+      var btn = e.target.closest('.gm-tab');
+      if (!btn) return;
+      var group = btn.dataset.group;
+      var base = '<%= pageType === "public" ? "/hall" : "/dashboard" %>';
+      window.location.href = group ? base + '?group=' + encodeURIComponent(group) : base;
+    });
+
+    // Sport chips
+    var sportBar = document.getElementById('sportBar');
+    if (sportBar) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/sports/hierarchy?scope=<%= pageType === "public" ? "public" : "all" %>', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4 || xhr.status !== 200) return;
+        var data = JSON.parse(xhr.responseText);
+        var g = data['<%= sportGroup %>'];
+        if (!g) return;
+        var keys = Object.keys(g);
+        if (keys.length === 0) return;
+        var html = '';
+        for (var i = 0; i < keys.length; i++) {
+          var s = keys[i], info = g[s] || {}, cnt = info.count || 0;
+          html += '<button class="gm-chip' + (s === '<%= sportName %>' ? ' active' : '') + '" data-sport="' + s + '">' + s + '<span class="cnt">' + cnt + '</span></button>';
+        }
+        sportBar.innerHTML = html;
+        sportBar.addEventListener('click', function(ev) {
+          var btn = ev.target.closest('.gm-chip');
+          if (!btn) return;
+          var sport = btn.dataset.sport;
+          var base = '<%= pageType === "public" ? "/hall" : "/dashboard" %>';
+          var g2 = '<%= sportGroup %>';
+          if (sport === '<%= sportName %>') {
+            window.location.href = base + '?group=' + encodeURIComponent(g2);
+          } else {
+            window.location.href = base + '?group=' + encodeURIComponent(g2) + '&sport=' + encodeURIComponent(sport);
+          }
+        });
+      };
+      xhr.send();
+    }
+
+    // Tag filter
+    document.querySelectorAll('.gm-chip[data-tag]').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.gm-chip[data-tag]').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var tagFilter = this.dataset.tag;
+        document.querySelectorAll('.gm-card').forEach(function(card) {
+          if (tagFilter === 'all') { card.style.display = ''; return; }
+          var cardTags = (card.dataset.tags || '').split(',');
+          card.style.display = cardTags.includes(tagFilter) ? '' : 'none';
+        });
+      });
+    });
+
+    // Card click -> view
+    document.querySelectorAll('.gm-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('form')) return;
+        var link = this.querySelector('a[href^="/plan/"]');
+        if (link) window.location.href = link.href;
+      });
+    });
+  </script>
   <script src="/js/main.js"></script>
 </body>
 </html>
