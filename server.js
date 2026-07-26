@@ -853,6 +853,12 @@ function createSubcategory(categoryId, name) {
 function updateSubcategory(id, name) {
   db.prepare('UPDATE subcategories SET name = ? WHERE id = ?').run(name, id);
 }
+function getCategoriesWithSubs() {
+  const cats = db.prepare('SELECT * FROM categories ORDER BY sortOrder ASC').all();
+  const getSubs = db.prepare('SELECT * FROM subcategories WHERE categoryId = ? ORDER BY sortOrder ASC');
+  return cats.map(c => ({ ...c, subcategories: getSubs.all(c.id) }));
+}
+
 function deleteSubcategory(id) {
   var sub = getSubcategoryById(id);
   if (sub) db.prepare("UPDATE plans SET subcategoryId = '' WHERE subcategoryId = ?").run(id);
@@ -1244,20 +1250,22 @@ app.get('/dashboard', isAuthenticated, async (req, res, next) => {
     let plans = allPlans.filter(p => p.authorId === req.session.user.id);
     const courses = getAllCourses();
     const allTags = getAllTags();
-    const sportGroup = req.query.group || '体育1';
-    const sportName = req.query.sport || '';
-    if (sportGroup) {
-      plans = plans.filter(p => p.sportGroup === sportGroup);
+    const cats = getCategoriesWithSubs();
+    const catId = req.query.cat || '';
+    const subId = req.query.sub || '';
+    if (catId) {
+      const subIds = db.prepare('SELECT id FROM subcategories WHERE categoryId = ?').all(catId).map(s => s.id);
+      plans = plans.filter(p => subIds.includes(p.subcategoryId));
     }
-    if (sportName) {
-      plans = plans.filter(p => p.sportName === sportName);
+    if (subId) {
+      plans = plans.filter(p => p.subcategoryId === subId);
     }
     for (const plan of plans) {
       await enrichPlanFiles(plan);
       plan.tags = getPlanTags(plan.id);
     }
     const stats = getPlanStats(req.session.user.id);
-    res.render('dashboard', { plans, courses, allTags, stats, pageType: 'private', sportGroup, sportName });
+    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, pageType: 'private' });
   } catch (e) { next(e); }
 });
 
@@ -1268,20 +1276,22 @@ app.get('/hall', isAuthenticated, async (req, res, next) => {
     let plans = allPlans.filter(p => p.isPublic == 1);
     const courses = getAllCourses();
     const allTags = getAllTags();
-    const sportGroup = req.query.group || '体育1';
-    const sportName = req.query.sport || '';
-    if (sportGroup) {
-      plans = plans.filter(p => p.sportGroup === sportGroup);
+    const cats = getCategoriesWithSubs();
+    const catId = req.query.cat || '';
+    const subId = req.query.sub || '';
+    if (catId) {
+      const subIds = db.prepare('SELECT id FROM subcategories WHERE categoryId = ?').all(catId).map(s => s.id);
+      plans = plans.filter(p => subIds.includes(p.subcategoryId));
     }
-    if (sportName) {
-      plans = plans.filter(p => p.sportName === sportName);
+    if (subId) {
+      plans = plans.filter(p => p.subcategoryId === subId);
     }
     for (const plan of plans) {
       await enrichPlanFiles(plan);
       plan.tags = getPlanTags(plan.id);
     }
     const stats = getPublicStats();
-    res.render('dashboard', { plans, courses, allTags, stats, pageType: 'public', sportGroup, sportName });
+    res.render('dashboard', { plans, courses, allTags, stats, cats, catId, subId, pageType: 'public' });
   } catch (e) { next(e); }
 });
 

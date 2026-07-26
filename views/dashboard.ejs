@@ -29,6 +29,34 @@
       background: var(--gm-bg); color: var(--gm-text); min-height: 100vh; font-size: 14px;
     }
 
+    .gm-category-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+    }
+    .gm-category-card {
+      background: var(--gm-surface); border: 1px solid var(--gm-border);
+      border-radius: var(--gm-radius); padding: 32px 24px; text-align: center;
+      text-decoration: none; color: inherit; cursor: pointer;
+      transition: var(--gm-transition);
+    }
+    .gm-category-card:hover {
+      transform: translateY(-2px); box-shadow: var(--gm-shadow-hover);
+      border-color: var(--gm-primary);
+    }
+    .gm-category-card .icon { font-size: 48px; margin-bottom: 12px; }
+    .gm-category-card .name { font-size: 18px; font-weight: 600; color: var(--gm-text); }
+    .gm-category-card .sub-count { font-size: 13px; color: var(--gm-text-secondary); margin-top: 6px; }
+    .gm-sub-tabs {
+      display: flex; gap: 8px; margin-bottom: 16px; padding: 8px 0;
+    }
+    .gm-sub-tab {
+      padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 500;
+      background: var(--gm-surface); border: 1px solid var(--gm-border); color: var(--gm-text-secondary);
+      cursor: pointer; text-decoration: none; transition: var(--gm-transition);
+    }
+    .gm-sub-tab:hover { background: var(--gm-primary-light); color: var(--gm-primary); border-color: var(--gm-primary); }
+    .gm-sub-tab.active { background: var(--gm-primary); color: #fff; border-color: var(--gm-primary); }
+    @media (max-width: 600px) { .gm-category-grid { grid-template-columns: 1fr; } }
+
     /* ====== Google Material Top App Bar ====== */
     .gm-topbar {
       background: var(--gm-surface); border-bottom: 1px solid var(--gm-border);
@@ -252,12 +280,16 @@
       <h1><%= pageType === 'public' ? '公共大厅' : '私人空间' %></h1>
       <span class="gm-count">共 <%= plans.length %> 个教案</span>
       <div class="gm-spacer"></div>
-      <a href="/courses" class="gm-btn gm-btn-outline">课程结构</a>
+      <% if (catId && user.role === 'admin') { %>
+        <a href="/courses?cat=<%= encodeURIComponent(catId) %>" class="gm-btn gm-btn-outline">管理子类目</a>
+      <% } %>
       <a href="/plan/new" class="gm-btn gm-btn-primary">+ 新建教案</a>
     </div>
 
     <% if (pageType === 'public') { %>
       <div class="gm-hint">浏览其他老师分享的公开教案，可以收藏和评论哦</div>
+    <% } else if (catId) { %>
+      <div class="gm-hint">点击子类目筛选教案，或在上方选择全部类目</div>
     <% } else if (plans.length > 0) { %>
       <div class="gm-hint">点击教案进入详情页可收藏、评论和保存版本；编辑时开启「公开分享」就能在公共大厅展示</div>
     <% } else { %>
@@ -274,20 +306,34 @@
       </div>
     <% } %>
 
-    <!-- Tabs + Chips Group -->
-    <div style="background:var(--gm-surface);border-radius:var(--gm-radius-sm);border:1px solid var(--gm-border);margin-bottom:8px">
-      <!-- Channel Tabs -->
-      <div class="gm-tabs" id="channelBar">
-        <% ['体育1','体育2','体育3','体育4'].forEach(function(g) { %>
-          <button class="gm-tab <%= sportGroup === g ? 'active' : '' %>" data-group="<%= g %>"><%= g %></button>
-        <% }); %>
+    <!-- Category Cards (when no catId) -->
+    <% if (!catId) { %>
+      <div class="gm-category-grid">
+        <% if (cats && cats.length > 0) {
+          for (var ci = 0; ci < cats.length; ci++) {
+            var cat = cats[ci];
+            var sc = cat.subcategories ? cat.subcategories.length : 0; %>
+          <a href="?cat=<%= encodeURIComponent(cat.id) %>" class="gm-category-card">
+            <div class="icon"><%= cat.icon || '📁' %></div>
+            <div class="name"><%= cat.name %></div>
+            <div class="sub-count"><%= sc %> 个子类目</div>
+          </a>
+        <% } } %>
       </div>
-
-      <!-- Sport Chips -->
-      <div class="gm-chips" id="sportBar">
-        <span style="font-size:13px;color:var(--gm-text-muted)">加载中...</span>
+    <% } else { %>
+      <!-- Subcategory Tabs -->
+      <div class="gm-sub-tabs">
+        <a href="<%= pageType === 'public' ? '/hall' : '/dashboard' %>" class="gm-sub-tab">&larr; 全部类目</a>
+        <% if (cats) {
+          var curCat = null;
+          for (var ci = 0; ci < cats.length; ci++) { if (cats[ci].id === catId) { curCat = cats[ci]; break; } }
+          if (curCat && curCat.subcategories) {
+            for (var si = 0; si < curCat.subcategories.length; si++) {
+              var s = curCat.subcategories[si]; %>
+          <a href="?cat=<%= encodeURIComponent(catId) %>&sub=<%= encodeURIComponent(s.id) %>" class="gm-sub-tab <%= subId === s.id ? 'active' : '' %>"><%= s.name %></a>
+        <% } } } %>
       </div>
-    </div>
+    <% } %>
 
     <!-- Tag Chips -->
     <% if (allTags && allTags.length > 0) { %>
@@ -303,8 +349,8 @@
     <% if (plans.length === 0) { %>
       <div class="gm-empty">
         <div class="icon">📋</div>
-        <h3><%= !sportName ? (pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案') : '该分类下暂无教案' %></h3>
-        <p><%= !sportName ? (pageType === 'public' ? '去看看其他分类吧' : '点击下方按钮创建教案') : '试试其他运动项目' %></p>
+        <h3><%= catId ? '该分类下暂无教案' : (pageType === 'public' ? '公共大厅还没有教案' : '你还没有创建教案') %></h3>
+        <p><%= catId ? '尝试其他子类目' : (pageType === 'public' ? '去看看其他分类吧' : '点击下方按钮创建教案') %></p>
         <a href="/plan/new" class="gm-btn gm-btn-primary" style="padding:10px 28px;font-size:15px">创建教案</a>
       </div>
     <% } else { %>
@@ -365,49 +411,6 @@
     document.addEventListener('click', function() {
       document.getElementById('userMenu').classList.remove('show');
     });
-
-    // Channel tabs
-    document.getElementById('channelBar').addEventListener('click', function(e) {
-      var btn = e.target.closest('.gm-tab');
-      if (!btn) return;
-      var group = btn.dataset.group;
-      var base = '<%= pageType === "public" ? "/hall" : "/dashboard" %>';
-      window.location.href = group ? base + '?group=' + encodeURIComponent(group) : base;
-    });
-
-    // Sport chips
-    var sportBar = document.getElementById('sportBar');
-    if (sportBar) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/sports/hierarchy?scope=<%= pageType === "public" ? "public" : "all" %>', true);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState !== 4 || xhr.status !== 200) return;
-        var data = JSON.parse(xhr.responseText);
-        var g = data['<%= sportGroup %>'];
-        if (!g) return;
-        var keys = Object.keys(g);
-        if (keys.length === 0) return;
-        var html = '';
-        for (var i = 0; i < keys.length; i++) {
-          var s = keys[i], info = g[s] || {}, cnt = info.count || 0;
-          html += '<button class="gm-chip' + (s === '<%= sportName %>' ? ' active' : '') + '" data-sport="' + s + '">' + s + '<span class="cnt">' + cnt + '</span></button>';
-        }
-        sportBar.innerHTML = html;
-        sportBar.addEventListener('click', function(ev) {
-          var btn = ev.target.closest('.gm-chip');
-          if (!btn) return;
-          var sport = btn.dataset.sport;
-          var base = '<%= pageType === "public" ? "/hall" : "/dashboard" %>';
-          var g2 = '<%= sportGroup %>';
-          if (sport === '<%= sportName %>') {
-            window.location.href = base + '?group=' + encodeURIComponent(g2);
-          } else {
-            window.location.href = base + '?group=' + encodeURIComponent(g2) + '&sport=' + encodeURIComponent(sport);
-          }
-        });
-      };
-      xhr.send();
-    }
 
     // Tag filter
     document.querySelectorAll('.gm-chip[data-tag]').forEach(function(tab) {
