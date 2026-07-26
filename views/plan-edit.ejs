@@ -41,6 +41,7 @@
       color: var(--gm-text-secondary); text-decoration: none; transition: var(--gm-transition);
     }
     .gm-nav a:hover { background: var(--gm-primary-light); color: var(--gm-primary); }
+    .gm-nav-title { font-size: 16px; font-weight: 600; color: var(--gm-text); }
     .gm-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .gm-avatar {
       width: 36px; height: 36px; border-radius: 50%; background: var(--gm-primary-light);
@@ -222,15 +223,19 @@
     <div class="gm-topbar-inner">
       <a href="/dashboard" class="gm-logo"><span>体育</span>与健康</a>
       <nav class="gm-nav">
-        <a href="/dashboard">私人空间</a>
-        <a href="/hall">公共大厅</a>
-        <a href="/courses">课程管理</a>
+        <% if (user.role === 'admin') { %>
+          <a href="/dashboard">私人空间</a>
+          <a href="/hall">公共大厅</a>
+          <a href="/courses">课程管理</a>
+        <% } else { %>
+          <span class="gm-nav-title">《体育与健康》课程资源</span>
+        <% } %>
       </nav>
       <div class="gm-nav-right">
         <div class="gm-avatar" id="avatarBtn"><%= user.displayName.charAt(0) %></div>
         <div class="gm-menu" id="userMenu">
           <span style="display:block;padding:8px 20px;font-size:13px;color:var(--gm-text-muted)"><%= user.displayName %></span>
-          <a href="/dashboard">私人空间</a>
+          <% if (user.role === 'admin') { %><a href="/dashboard">私人空间</a><% } %>
           <a href="/logout">退出登录</a>
         </div>
       </div>
